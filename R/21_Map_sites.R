@@ -199,7 +199,7 @@ for (country in target_countries) {
   # Filter sites inside this country
   country_sites <- locations_comb %>%
     #st_transform(crs_europe) %>%
-    st_intersection(country_shape)
+    st_intersection(st_buffer(country_shape, 5000))
   
   # Country bbox for zoom
   country_bbox <- st_bbox(st_buffer(country_shape, 25000))
