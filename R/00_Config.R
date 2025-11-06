@@ -38,7 +38,7 @@ for (pkg in packages) {
 # Load data -----
 #----------------------------------------------------------#
 locations <- readr::read_csv(
-  "Data/Inputs/locations_20251104.csv",
+  "Data/Inputs/locations_20251105.csv",
 )  %>%
   dplyr::mutate(
     type_code = str_sub(code, 1, 1),
@@ -75,13 +75,28 @@ locations_comb <- locations_2025 %>%
   ) %>%
   dplyr::select(-key)
 
+locations_bbox <-
+  locations_2025 %>%
+  sf::st_bbox() %>%
+  sf::st_as_sfc() %>%        
+  sf::st_buffer(125000) %>%
+  sf::st_bbox()
 
+target_bbox <-
+  locations_2025 %>%
+  sf::st_bbox() %>%
+  sf::st_as_sfc() %>%        
+  sf::st_buffer(1000000) %>%
+  sf::st_bbox()
 
 # Europe polygons
 europe <- rnaturalearth::ne_countries(
   continent = "Europe", 
   scale = "medium",   
   returnclass = "sf"
+  ) %>%
+  dplyr::filter(
+    continent == "Europe"
   )
 
 # --- Load all countries globally, not just Europe ---
@@ -95,15 +110,15 @@ countries_europe_extended <- c(
   "Kosovo", "North Macedonia", "Albania", "Greece", "Bulgaria", "Romania", "Moldova",
   "Ukraine", "Belarus", "Lithuania", "Latvia", "Estonia", "Norway", "Sweden", "Finland",
   "Denmark", "Iceland", "Italy", "Malta", "Turkey", "Georgia", "Armenia", "Azerbaijan",
-  "Russia", "Morocco", "Algeria", "Tunisia", "Libya", "Egypt"
+  "Russia", "Morocco", "Algeria", "Tunisia", "Libya", "Egypt", "Republic of Serbia"
 )
 
 europe_ext <- world %>% 
   filter(admin %in% countries_europe_extended)
 
 # Major lakes and rivers for context
-lakes  <- ne_download(scale = 10, type = "lakes", category = "physical", returnclass = "sf")
-rivers <- ne_download(scale = 10, type = "rivers_lake_centerlines", category = "physical", returnclass = "sf")
+lakes  <- ne_download(scale = "large", type = "lakes", category = "physical", returnclass = "sf")
+rivers <- ne_download(scale = "large", type = "rivers_lake_centerlines", category = "physical", returnclass = "sf")
 
 # Major cities (optional context)
 cities <- ne_download(scale = 10, type = "populated_places", category = "cultural", returnclass = "sf") %>%
@@ -123,9 +138,20 @@ europe_ext  <- st_transform(europe_ext, crs_europe)
 lakes   <- st_transform(lakes, crs_europe)
 rivers  <- st_transform(rivers, crs_europe)
 cities  <- st_transform(cities, crs_europe)
-sites   <- st_transform(locations_2025, crs_europe)
+locations_2025   <- st_transform(locations_2025, crs_europe)
+locations_2024   <- st_transform(locations_2024, crs_europe)
+locations_comb   <- st_transform(locations_comb, crs_europe)
+locations_bbox <- st_transform(locations_bbox, crs_europe)
+europe_bbox <- st_bbox(europe_ext)  # crs already 3035
+target_bbox <- st_transform(target_bbox, crs_europe)
 
 target_countries <- c("Ireland", "Spain", "Croatia", "Bulgaria", "Czechia", 
                       "Finland", "Slovakia", "Netherlands", "Italy", "Belgium",
                       "Denmark", "Sweden")
+
+# Okabe-Ito colourblind-friendly palette (works for up to 8 categories)
+okabe_ito <- setNames(
+  c("#009E73", "#E69F00","#0072B2", "#D55E00"),
+  c("F", "G", "W", "O")
+)
 
