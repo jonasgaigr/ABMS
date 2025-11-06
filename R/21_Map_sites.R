@@ -2,57 +2,51 @@
 ## 2025 ----
 map_europe_2025 <- 
   ggplot() +
-  # Base map layers
   geom_sf(data = europe_ext, fill = "gray98", color = "gray70", size = 0.3) +
   geom_sf(data = lakes, fill = "lightblue", color = NA, alpha = 0.4) +
   geom_sf(data = rivers, color = "lightblue", size = 0.2, alpha = 0.6) +
   
-  # Sites
-  geom_sf(data = locations_2025,
-          aes(color = factor(site_type)),
-          size = 2,
-          alpha = 0.8) +
-  
-  # Major cities for orientation
-  #geom_sf(data = cities, color = "black", size = 1, alpha = 0.7) +
-  #geom_text(
-  #  data = cities_coords,
-  #  aes(x = lon, y = lat, label = NAME),
-  #  size = 3,
-  #  hjust = -0.1,
-  #  vjust = 0.5,
-  #  color = "gray20"
-  #) +
-  
-  # Scale bar & north arrow
-  annotation_scale(location = "bl", width_hint = 0.3, text_cex = 0.8) +
-  annotation_north_arrow(
-    location = "bl", which_north = "true",
-    style = north_arrow_fancy_orienteering,
-    height = unit(1.5, "cm"), width = unit(1, "cm")
+  # Sites — increase point size 1.5×
+  geom_sf(
+    data = locations_2025,
+    aes(color = type_code),
+    size = 2.8 * 1.5,   # 2.8 × 1.5 ≈ 4.2
+    alpha = 0.9
   ) +
   
-  # Labels and legend
+  scale_color_manual(
+    values = okabe_ito,
+    breaks = c("F", "G", "W", "O"),
+    labels = c("forest", "grassland", "wetland", "other"),
+    name   = "Habitat Type"
+  ) +
+  
+  coord_sf(
+    xlim = c(locations_bbox["xmin"], locations_bbox["xmax"]),
+    ylim = c(locations_bbox["ymin"], locations_bbox["ymax"]),
+    expand = FALSE
+  ) +
+  
+  theme_minimal(base_family = "Roboto") +
+  theme(
+    panel.background  = element_rect(fill = "#EAF2F8", color = NA),
+    panel.grid.major  = element_line(color = "white"),
+    plot.title        = element_text(size = 16, face = "bold", hjust = 0.5),
+    # Legend anchored inside the map near the right edge
+    legend.position   = c(1, 0.55),      # inside, vertical middle
+    legend.justification = c(1, 0.5),      # right-middle of legend box aligns at x=0.95
+    legend.background = element_rect(fill = alpha("white", 1), color = NA),
+    legend.key.size   = unit(1.5, "lines"),  # ×2
+    legend.text       = element_text(size = 20),  # ×2
+    legend.title      = element_text(size = 22, face = "bold")  # ×2
+  ) +
+  
+  guides(color = guide_legend(override.aes = list(size = 4.2, alpha = 1))) +
+  
   labs(
     title = "ABMS Sites Across Europe – 2025",
-    subtitle = "High-resolution base map with rivers, lakes and major cities",
-    color = "Site type"
-  ) +
-  
-  # Coordinate limits for Europe
-  coord_sf(xlim = c(2500000, 6000000), ylim = c(1400000, 5500000)) +
-  
-  # Theme & aesthetics
-  scale_color_viridis_d() +
-  theme_minimal(base_size = 14) +
-  theme(
-    panel.grid.major = element_line(color = "gray90", size = 0.3),
-    panel.background  = element_rect(fill = "aliceblue"),
-    plot.background   = element_rect(fill = "white", color = NA),
-    legend.position   = "right",
-    legend.title      = element_text(face = "bold"),
-    plot.title        = element_text(size = 18, face = "bold", hjust = 0.5),
-    plot.subtitle     = element_text(size = 12, hjust = 0.5, color = "gray40")
+    x = NULL,
+    y = NULL
   )
 
 # --- Save the European map ---
@@ -70,52 +64,47 @@ map_europe_2024 <-
   geom_sf(data = lakes, fill = "lightblue", color = NA, alpha = 0.4) +
   geom_sf(data = rivers, color = "lightblue", size = 0.2, alpha = 0.6) +
   
-  # Sites
-  geom_sf(data = locations_2024,
-          aes(color = factor(site_type)),
-          size = 2,
-          alpha = 0.8) +
-  
-  # Major cities for orientation
-  #geom_sf(data = cities, color = "black", size = 1, alpha = 0.7) +
-  #geom_text(
-  #  data = cities_coords,
-  #  aes(x = lon, y = lat, label = NAME),
-  #  size = 3,
-  #  hjust = -0.1,
-  #  vjust = 0.5,
-  #  color = "gray20"
-  #) +
-  
-  # Scale bar & north arrow
-  annotation_scale(location = "bl", width_hint = 0.3, text_cex = 0.8) +
-  annotation_north_arrow(
-    location = "bl", which_north = "true",
-    style = north_arrow_fancy_orienteering,
-    height = unit(1.5, "cm"), width = unit(1, "cm")
+  # Sites — increase point size 1.5×
+  geom_sf(
+    data = locations_2024,
+    aes(color = type_code),
+    size = 2.8 * 1.5,   # 2.8 × 1.5 ≈ 4.2
+    alpha = 0.9
   ) +
   
-  # Labels and legend
+  scale_color_manual(
+    values = okabe_ito,
+    breaks = c("F", "G", "W", "O"),
+    labels = c("forest", "grassland", "wetland", "other"),
+    name   = "Habitat Type"
+  ) +
+  
+  coord_sf(
+    xlim = c(locations_bbox["xmin"], locations_bbox["xmax"]),
+    ylim = c(locations_bbox["ymin"], locations_bbox["ymax"]),
+    expand = FALSE
+  ) +
+  
+  theme_minimal(base_family = "Roboto") +
+  theme(
+    panel.background  = element_rect(fill = "#EAF2F8", color = NA),
+    panel.grid.major  = element_line(color = "white"),
+    plot.title        = element_text(size = 16, face = "bold", hjust = 0.5),
+    # Legend anchored inside the map near the right edge
+    legend.position   = c(1, 0.55),      # inside, vertical middle
+    legend.justification = c(1, 0.5),      # right-middle of legend box aligns at x=0.95
+    legend.background = element_rect(fill = alpha("white", 1), color = NA),
+    legend.key.size   = unit(1.5, "lines"),  # ×2
+    legend.text       = element_text(size = 20),  # ×2
+    legend.title      = element_text(size = 22, face = "bold")  # ×2
+  ) +
+  
+  guides(color = guide_legend(override.aes = list(size = 4.2, alpha = 1))) +
+  
   labs(
     title = "ABMS Sites Across Europe – 2024",
-    subtitle = "High-resolution base map with rivers, lakes and major cities",
-    color = "Site type"
-  ) +
-  
-  # Coordinate limits for Europe
-  coord_sf(xlim = c(2500000, 6000000), ylim = c(1400000, 5500000)) +
-  
-  # Theme & aesthetics
-  scale_color_viridis_d() +
-  theme_minimal(base_size = 14) +
-  theme(
-    panel.grid.major = element_line(color = "gray90", size = 0.3),
-    panel.background  = element_rect(fill = "aliceblue"),
-    plot.background   = element_rect(fill = "white", color = NA),
-    legend.position   = "right",
-    legend.title      = element_text(face = "bold"),
-    plot.title        = element_text(size = 18, face = "bold", hjust = 0.5),
-    plot.subtitle     = element_text(size = 12, hjust = 0.5, color = "gray40")
+    x = NULL,
+    y = NULL
   )
 
 # --- Save the European map ---
@@ -133,52 +122,47 @@ map_europe <-
   geom_sf(data = lakes, fill = "lightblue", color = NA, alpha = 0.4) +
   geom_sf(data = rivers, color = "lightblue", size = 0.2, alpha = 0.6) +
   
-  # Sites
-  geom_sf(data = locations_comb,
-          aes(color = factor(site_type)),
-          size = 2,
-          alpha = 0.8) +
-  
-  # Major cities for orientation
-  #geom_sf(data = cities, color = "black", size = 1, alpha = 0.7) +
-  #geom_text(
-  #  data = cities_coords,
-  #  aes(x = lon, y = lat, label = NAME),
-  #  size = 3,
-  #  hjust = -0.1,
-  #  vjust = 0.5,
-  #  color = "gray20"
-  #) +
-  
-  # Scale bar & north arrow
-  annotation_scale(location = "bl", width_hint = 0.3, text_cex = 0.8) +
-  annotation_north_arrow(
-    location = "bl", which_north = "true",
-    style = north_arrow_fancy_orienteering,
-    height = unit(1.5, "cm"), width = unit(1, "cm")
+  # Sites — increase point size 1.5×
+  geom_sf(
+    data = locations_comb,
+    aes(color = type_code),
+    size = 2.8 * 1.5,   # 2.8 × 1.5 ≈ 4.2
+    alpha = 0.9
   ) +
   
-  # Labels and legend
+  scale_color_manual(
+    values = okabe_ito,
+    breaks = c("F", "G", "W", "O"),
+    labels = c("forest", "grassland", "wetland", "other"),
+    name   = "Habitat Type"
+  ) +
+  
+  coord_sf(
+    xlim = c(locations_bbox["xmin"], locations_bbox["xmax"]),
+    ylim = c(locations_bbox["ymin"], locations_bbox["ymax"]),
+    expand = FALSE
+  ) +
+  
+  theme_minimal(base_family = "Roboto") +
+  theme(
+    panel.background  = element_rect(fill = "#EAF2F8", color = NA),
+    panel.grid.major  = element_line(color = "white"),
+    plot.title        = element_text(size = 16, face = "bold", hjust = 0.5),
+    # Legend anchored inside the map near the right edge
+    legend.position   = c(1, 0.55),      # inside, vertical middle
+    legend.justification = c(1, 0.5),      # right-middle of legend box aligns at x=0.95
+    legend.background = element_rect(fill = alpha("white", 1), color = NA),
+    legend.key.size   = unit(1.5, "lines"),  # ×2
+    legend.text       = element_text(size = 20),  # ×2
+    legend.title      = element_text(size = 22, face = "bold")  # ×2
+  ) +
+  
+  guides(color = guide_legend(override.aes = list(size = 4.2, alpha = 1))) +
+  
   labs(
     title = "ABMS Sites Across Europe – 2024-2025",
-    subtitle = "High-resolution base map with rivers, lakes and major cities",
-    color = "Site type"
-  ) +
-  
-  # Coordinate limits for Europe
-  coord_sf(xlim = c(2500000, 6000000), ylim = c(1400000, 5500000)) +
-  
-  # Theme & aesthetics
-  scale_color_viridis_d() +
-  theme_minimal(base_size = 14) +
-  theme(
-    panel.grid.major = element_line(color = "gray90", size = 0.3),
-    panel.background  = element_rect(fill = "aliceblue"),
-    plot.background   = element_rect(fill = "white", color = NA),
-    legend.position   = "right",
-    legend.title      = element_text(face = "bold"),
-    plot.title        = element_text(size = 18, face = "bold", hjust = 0.5),
-    plot.subtitle     = element_text(size = 12, hjust = 0.5, color = "gray40")
+    x = NULL,
+    y = NULL
   )
 
 # --- Save the European map ---
@@ -193,32 +177,78 @@ ggsave(
 dir.create("Outputs/Maps", showWarnings = FALSE, recursive = TRUE)
 
 # --- Loop ---
+# Compute Europe bbox once (already in crs_europe)
+europe_bbox <- st_bbox(europe)
+
+# Function to crop country to European mainland
+filter_mainland <- function(shape, target_bbox) {
+  if (st_crs(shape)$epsg != 3035) {
+    shape <- st_transform(shape, 3035)
+  }
+  st_crop(shape, target_bbox)
+}
+
 for (country in target_countries) {
   
-  country_shape <- world %>% filter(admin == country)
-  country_sites <- locations_comb[country_shape, ]  # spatial filter
+  # Country shape cropped to European mainland
+  country_shape <- europe %>% 
+    filter(admin == country) %>%
+    #st_transform(crs_europe) %>%
+    filter_mainland(target_bbox)
   
+  # Filter sites inside this country
+  country_sites <- locations_comb %>%
+    #st_transform(crs_europe) %>%
+    st_intersection(country_shape)
+  
+  # Country bbox for zoom
+  country_bbox <- st_bbox(st_buffer(country_shape, 25000))
+  
+  # Build map
   map_country <- ggplot() +
     geom_sf(data = country_shape, fill = "grey95", color = "grey60", size = 0.2) +
-    geom_sf(data = country_sites, aes(color = type_code), size = 3, alpha = 0.85) +
-    scale_color_brewer(palette = "Dark2", name = "Site type") +
+    geom_sf(
+      data = country_sites,
+      aes(color = type_code),
+      size = 2.8 * 1.5,  # same as Europe map
+      alpha = 0.9
+    ) +
+    geom_sf(data = lakes %>% st_filter(., country_shape), fill = "lightblue", color = NA, alpha = 0.4) +
+    geom_sf(data = rivers %>% st_filter(., country_shape), color = "lightblue", size = 0.2, alpha = 0.6) + 
+    scale_color_manual(
+      values = okabe_ito,
+      breaks = c("F", "G", "W", "O"),
+      labels = c("forest", "grassland", "wetland", "other"),
+      name   = "Habitat Type"
+    ) +
+    coord_sf(
+      xlim = c(country_bbox["xmin"], country_bbox["xmax"]),
+      ylim = c(country_bbox["ymin"], country_bbox["ymax"]),
+      expand = FALSE
+    ) +
     theme_minimal(base_family = "Roboto") +
     theme(
       panel.background = element_rect(fill = "#EAF2F8", color = NA),
       panel.grid.major = element_line(color = "white"),
-      legend.position = "bottom",
-      legend.background = element_rect(fill = alpha("white", 0.8), color = NA),
-      plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
+      #legend.position  = c(0.85, 0.85),        # inside top-right
+      #legend.justification = c(1, 1),
+      legend.background = element_rect(fill = alpha("white", 0.85), color = NA),
+      legend.key.size = unit(1.5, "lines"),
+      legend.text = element_text(size = 20),
+      legend.title = element_text(size = 22, face = "bold"),
+      plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
     ) +
+    guides(color = guide_legend(override.aes = list(size = 4.2, alpha = 1))) +
     labs(
       title = paste("Monitoring Sites in", country),
       x = NULL, y = NULL
     )
   
-  # --- Save map for each country ---
+  # Save map
   ggsave(
     filename = paste0("Outputs/Maps/Map_", country, ".png"),
     plot = map_country,
     width = 8, height = 6, dpi = 300
   )
 }
+
