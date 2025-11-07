@@ -86,7 +86,7 @@ target_bbox <-
   locations_2025 %>%
   sf::st_bbox() %>%
   sf::st_as_sfc() %>%        
-  sf::st_buffer(1000000) %>%
+  sf::st_buffer(1500000) %>%
   sf::st_bbox()
 
 # Europe polygons
