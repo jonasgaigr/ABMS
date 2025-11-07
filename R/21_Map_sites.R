@@ -44,7 +44,7 @@ map_europe_2025 <-
   guides(color = guide_legend(override.aes = list(size = 4.2, alpha = 1))) +
   
   labs(
-    title = "ABMS Sites Across Europe – 2025",
+    title = "Automated Biodiversity Monitoring Stations Across Europe – 2025",
     x = NULL,
     y = NULL
   )
@@ -102,7 +102,7 @@ map_europe_2024 <-
   guides(color = guide_legend(override.aes = list(size = 4.2, alpha = 1))) +
   
   labs(
-    title = "ABMS Sites Across Europe – 2024",
+    title = "Automated Biodiversity Monitoring Stations Across Europe – 2024",
     x = NULL,
     y = NULL
   )
@@ -160,7 +160,7 @@ map_europe <-
   guides(color = guide_legend(override.aes = list(size = 4.2, alpha = 1))) +
   
   labs(
-    title = "ABMS Sites Across Europe – 2024-2025",
+    title = "Automated Biodiversity Monitoring Stations Across Europe – 2024-2025",
     x = NULL,
     y = NULL
   )
@@ -196,6 +196,11 @@ for (country in target_countries) {
     #st_transform(crs_europe) %>%
     filter_mainland(target_bbox)
   
+  countries_other <- europe %>% 
+    filter(admin != country) %>%
+    #st_transform(crs_europe) %>%
+    filter_mainland(target_bbox)
+  
   # Filter sites inside this country
   country_sites <- locations_comb %>%
     #st_transform(crs_europe) %>%
@@ -206,6 +211,7 @@ for (country in target_countries) {
   
   # Build map
   map_country <- ggplot() +
+    geom_sf(data = countries_other, fill = "grey80", color = "grey60", alpha = 0.3, size = 0.15) +
     geom_sf(data = country_shape, fill = "grey95", color = "grey60", size = 0.2) +
     geom_sf(
       data = country_sites,
@@ -240,7 +246,7 @@ for (country in target_countries) {
     ) +
     guides(color = guide_legend(override.aes = list(size = 4.2, alpha = 1))) +
     labs(
-      title = paste("Monitoring Sites in", country),
+      title = paste("Automated Biodiversity Monitoring\nStations in", country),
       x = NULL, y = NULL
     )
   
