@@ -56,6 +56,27 @@ locations <- readr::read_csv(
     ), 
     crs = 4326)
 
+deploy_info <- readr::read_csv(
+  "Data/Inputs/deployment.csv",
+) %>%
+  dplyr::rename(
+    partner = `Partner acronym`,
+    code = `Deployment code...3`,
+    device_code = `Deployment code...4`,
+    device_id = `Device ID`,
+    deployment_date = `Device deployment date (double-click cell to bring up calendar)`,
+    retrieval_date = `Device retrieval date (double-click cell to bring up calendar)`
+  ) %>%
+  dplyr::mutate(
+    type_code = str_sub(code, 1, 1),
+    site_type = dplyr::case_when(
+      type_code == "G" ~ "grassland",
+      type_code == "F" ~ "forest",
+      type_code == "W" ~ "wetland",
+      type_code == "O" ~ "other"
+    )
+  ) 
+
 locations_2025 <-
   locations %>%
   dplyr::filter(year == 2025)
