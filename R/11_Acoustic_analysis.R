@@ -338,3 +338,116 @@ message("--- Word saving complete. ---")
 message("--- All files saved. ---")
 
 message("--- EDA script complete. ---")
+
+# ----------------------------------------------------------------- #
+# Rarefaction and Extrapolation ---- 
+# ----------------------------------------------------------------- #
+# 1. Summarize the filtered data to get detection counts per species per site
+# We use the filtered data (confidence >= 0.7)
+species_counts_wide <- data_filtered %>%
+  # Group by the desired comparison level (e.g., deployment) and species
+  dplyr::group_by(deployment, species) %>%
+  dplyr::summarise(
+    n = dplyr::n(),
+    .groups = 'drop'
+  ) %>%
+  # Convert long format to wide format (Species-by-Sample matrix)
+  tidyr::pivot_wider(
+    id_cols = deployment,
+    names_from = species,
+    values_from = n,
+    values_fill = 0
+  ) %>%
+  # Move the 'deployment' column into the row names for the matrix format
+  tibble::column_to_rownames(var = "deployment")
+
+# Convert to a simple matrix (iNEXT/vegan prefer this)
+species_count_matrix <- as.matrix(species_counts_wide)
+
+library(vegan)
+
+# Determine the standardization level: Use the lowest non-zero sample size.
+# This is the max depth we can rarefy all samples to.
+min_sample_size <- min(rowSums(species_count_matrix[rowSums(species_count_matrix) > 0, ]))
+
+# Use vegan::rarefy() to estimate species richness at the minimum effort
+rarefied_richness <- vegan::rarefy(
+  species_count_matrix,
+  sample = min_sample_size
+)
+
+# Convert the result to a data frame for plotting/analysis
+rarefied_df <- data.frame(
+  deployment = names(rarefied_richness),
+  richness_rarefied = as.numeric(rarefied_richness)
+)
+
+message("Richness rarefied to an effort of ", min_sample_size, " detections.")
+print(head(rarefied_df))
+
+# You must install 'iNEXT' if you haven't already
+# install.packages("iNEXT")
+library(iNEXT)
+
+# Run iNEXT: Estimates diversity (q=0 for richness) based on standardized effort
+# iNEXT uses the count matrix directly.
+iNEXT_output <- iNEXT::iNEXT(
+  x = species_count_matrix,
+  q = 0,               # q=0 is Species Richness (the number of unique species)
+  datatype = "abundance" # The input data is counts/abundances
+)
+
+iNEXT_output_quick <- iNEXT::iNEXT(
+  x = species_count_matrix, # Use your original large matrix
+  q = 0,
+  datatype = "abundance",
+  nboot = 10     # Reduced bootstrap repetitions
+)
+
+# Visualize the resulting diversity curves
+# This plot will show how species richness changes as sampling effort (number of detections) increases,
+# allowing you to see if you have adequately sampled each site.
+iNEXT::ggiNEXT(iNEXT_output) +
+  ggplot2::labs(
+    title = "Rarefaction and Extrapolation Curve (Species Richness)",
+    x = "Number of Detections (Standardized Effort)",
+    y = "Species Richness (q=0)"
+  )
+
+# Use the same 'species_count_matrix' created above.
+
+# Standardize by total site detections (Standardization Method 'total')
+# This converts the raw counts to relative proportions within each site.
+# This controls for the varying *number of total detections* per site.
+standardized_matrix <- vegan::decostand(
+  species_count_matrix,
+  method = "total"
+)
+
+# Run NMDS on the standardized data
+nmds_result <- vegan::metaMDS(
+  standardized_matrix,
+  distance = "bray", # Bray-Curtis distance is standard for abundance data
+  k = 2,              # 2 dimensions for easy plotting
+  trymax = 100        # Try up to 100 random starts to find a stable solution
+)
+
+# Extract coordinates and merge with partner/habitat metadata for plotting
+data_scores <- data.frame(vegan::scores(nmds_result, display = "sites")) %>%
+  tibble::rownames_to_column(var = "deployment") %>%
+  # Merge back with your original data to get the 'partner' column
+  dplyr::left_join(
+    data_filtered %>% dplyr::select(deployment, partner) %>% dplyr::distinct(),
+    by = "deployment"
+  )
+
+# Plot the NMDS results
+nmds_plot <- ggplot2::ggplot(data_scores, ggplot2::aes(x = NMDS1, y = NMDS2, color = partner)) +
+  ggplot2::geom_point(size = 3, alpha = 0.7) +
+  ggplot2::stat_ellipse() + # Draw a confidence ellipse around each partner group
+  ggplot2::labs(
+    title = "Compositional Dissimilarity (NMDS)",
+    subtitle = "Standardized by total site detections",
+    caption = paste("Stress:", round(nmds_result$stress, 3))
+  ) +
+  ggplot2::theme_minimal()
