@@ -13,6 +13,7 @@ packages <- c(
   "remotes",
   "ggtext",
   "vegan",
+  "googledrive",
   "ggplot2",
   "ggrepel",
   "ggforce",
@@ -176,3 +177,74 @@ okabe_ito <- setNames(
   c("F", "G", "W", "O")
 )
 
+# Load acoustic data ----
+# Extract the file ID from your Google Drive link:
+# URL: https://drive.google.com/file/d/1fSjoRQjQ9Ub03eSpKgcLiMZ5A1y9wwaO/view?usp=drive_link
+# ID:                                 1fSjoRQjQ9Ub03eSpKgcLiMZ5A1y9wwaO
+gdrive_file_id <- "1fSjoRQjQ9Ub03eSpKgcLiMZ5A1y9wwaO"
+
+# Create a temporary file path to store the downloaded zip
+# This file will be automatically cleaned up
+temp_zip_path <- tempfile(fileext = ".zip")
+
+# -----------------------------------------------------------------
+# 1. Download the file from Google Drive
+# -----------------------------------------------------------------
+
+# Tell googledrive not to use a logged-in user.
+# This is best practice for public files.
+drive_deauth()
+
+message("Downloading file from Google Drive...")
+drive_download(
+  file = as_id(gdrive_file_id), # Use as_id() to specify it's an ID
+  path = temp_zip_path,
+  overwrite = TRUE
+)
+message("Download complete: ", temp_zip_path)
+
+# -----------------------------------------------------------------
+# 2. Find the CSV file *inside* the zip
+# -----------------------------------------------------------------
+
+# Get a list of all files inside the zip archive
+files_in_zip <- unzip(temp_zip_path, list = TRUE)
+
+# Find the name of the file that ends in .csv (case-insensitive)
+csv_file_name <- grep("\\.csv$", files_in_zip$Name, value = TRUE, ignore.case = TRUE)
+
+# Error handling: Stop if no CSV is found or if multiple are found
+if (length(csv_file_name) == 0) {
+  stop("Error: No .csv file was found inside the downloaded zip archive.")
+} else if (length(csv_file_name) > 1) {
+  message("Warning: Multiple .csv files found. Reading the first one: ", csv_file_name[1])
+  csv_file_name <- csv_file_name[1] # Select the first one
+} else {
+  message("Found CSV file in zip: ", csv_file_name)
+}
+
+# -----------------------------------------------------------------
+# 3. Read the CSV directly from the zip
+# -----------------------------------------------------------------
+
+# Use the unz() function to create a connection to the file
+# *without* fully extracting it to disk.
+# readr::read_csv() can read directly from this connection.
+message("Reading CSV data...")
+acoustic_data <- readr::read_csv(
+  unz(temp_zip_path, csv_file_name)
+)
+
+message("Successfully read data.")
+
+# -----------------------------------------------------------------
+# 4. Success!
+# -----------------------------------------------------------------
+
+# Clean up the temporary zip file
+file.remove(temp_zip_path)
+
+# Show the first few rows of your new data frame
+print(head(acoustic_data))
+
+# Your data is now in the 'data' data frame
