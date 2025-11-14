@@ -2,6 +2,8 @@
 # Load packages -----
 #----------------------------------------------------------#
 packages <- c(
+  "flextable",
+  "officer",
   "tidyverse",
   "broom",
   "janitor",
