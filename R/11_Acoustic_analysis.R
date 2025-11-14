@@ -10,8 +10,26 @@ confidence_threshold <- 0.7
 
 # Create a filtered data frame. This will be the basis for most analysis.
 # We keep only rows with confidence >= the threshold.
+message("Filtering data and creating confidence bins...")
+
+# Define the order of bins for the plot legend
+# We do this so "> 0.95" appears on top, not alphabetically
+bin_levels <- c("> 0.95", "0.85 - 0.95", "0.70 - 0.85")
+
+# Create a filtered data frame with an added 'confidence_bin' column
 data_filtered <- acoustic_data %>%
-  dplyr::filter(confidence >= confidence_threshold)
+  dplyr::filter(confidence >= confidence_threshold) %>%
+  dplyr::mutate(
+    confidence_bin = dplyr::case_when(
+      confidence >= 0.95 ~ bin_levels[1],
+      confidence >= 0.85 ~ bin_levels[2],
+      TRUE ~ bin_levels[3] # All remaining (0.70 - 0.849...)
+    ),
+    # Convert 'confidence_bin' to a factor to control stacking order
+    confidence_bin = factor(confidence_bin, levels = bin_levels)
+  )
+
+message("Data filtered and binned successfully.")
 
 # ----------------------------------------------------------------- #
 # 3. High-Level Summaries ----
@@ -87,33 +105,49 @@ ggplot2::ggsave(
 
 
 # ----------------------------------------------------------------- #
-# 5. Plot 2: Top Species (on *filtered* data) ----
+# 5. Plot 2: Top Species (MODIFIED for stacked bars)
 # ----------------------------------------------------------------- #
-# What are the most common species found?
+# What are the most common species found, stacked by confidence?
 
-message("Generating Plot 2: Top Species...")
+message("Generating Plot 2: Top Species (Stacked)...")
 
 # Set how many top species you want to see
 top_n_species <- 20
 
-# Create a summary data frame of the top N species
-top_species_data <- data_filtered %>%
+# 1. Find the *names* of the top 20 species based on *total* count
+top_species_names <- data_filtered %>%
   dplyr::count(species, sort = TRUE) %>%
-  dplyr::slice_head(n = top_n_species)
+  dplyr::slice_head(n = top_n_species) %>%
+  dplyr::pull(species) # pull() extracts just the 'species' column as a vector
 
-# Create the bar plot
+# 2. Create the summary data for plotting
+# Filter for *only* those top species, then count detections *within each bin*
+top_species_data <- data_filtered %>%
+  dplyr::filter(species %in% top_species_names) %>%
+  dplyr::count(species, confidence_bin, name = "n")
+
+# 3. Create the stacked bar plot
+# We map 'fill' to 'confidence_bin'
 top_species_plot <- ggplot2::ggplot(
   top_species_data,
-  # Use forcats::fct_reorder to sort species by count (n)
-  ggplot2::aes(x = forcats::fct_reorder(species, n), y = n)
+  # x-axis: Reorder 'species' factor by the SUM of 'n' (total count)
+  # y-axis: 'n' (the count for each bin)
+  # fill: 'confidence_bin' to create the stacks
+  ggplot2::aes(
+    x = forcats::fct_reorder(species, n, .fun = sum),
+    y = n,
+    fill = confidence_bin
+  )
 ) +
-  ggplot2::geom_col(fill = "steelblue") +
+  ggplot2::geom_col() + # geom_col() is correct for stacked bars (position="stack" is default)
   ggplot2::coord_flip() + # Flip coordinates so names are readable
+  ggplot2::scale_fill_brewer(palette = "cool", direction = -1) + # Use a nice color scale
   ggplot2::labs(
     title = paste("Top", top_n_species, "Most Frequent Species"),
     subtitle = paste("Based on detections with confidence >=", confidence_threshold),
     x = "Species",
-    y = "Number of Detections"
+    y = "Number of Detections",
+    fill = "Confidence Bin" # Legend title
   ) +
   ggplot2::theme_minimal() +
   ggplot2::theme(
@@ -122,11 +156,13 @@ top_species_plot <- ggplot2::ggplot(
 
 # print(top_species_plot)
 ggplot2::ggsave(
-  "Outputs/Figures/2_top_species_plot.png",
+  "Outputs/Figures/2_top_species_plot_stacked.png", # Changed filename
   top_species_plot,
-  width = 10,
+  width = 11, # Increased width slightly for legend
   height = 7
 )
+
+message("Stacked species plot saved.")
 
 # ----------------------------------------------------------------- #
 # 6. Plot 3: Detections per Recording (on *filtered* data) ----
@@ -156,7 +192,7 @@ detections_per_file_hist <- ggplot2::ggplot(
     x = "Number of Detections in a Single Recording",
     y = "Count of Recordings"
   ) +
-  ggplot2::scale_y_log10() + # Use a log scale if distribution is heavily skewed
+  #ggplot2::scale_y_log10() + # Use a log scale if distribution is heavily skewed
   ggplot2::theme_minimal()
 
 # print(detections_per_file_hist)
