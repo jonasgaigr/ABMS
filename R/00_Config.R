@@ -261,10 +261,7 @@ acoustic_data <-
         europeanRegionalRedListCategory
       ),
     by = c("species_name" = "scientificName")
-  ) %>%
-  dplyr::select(
-    -c(sourcefileid, filename)
-  )
+  ) 
 
 # ----------------------------------------------------------------- #
 # 4. Success! ----
