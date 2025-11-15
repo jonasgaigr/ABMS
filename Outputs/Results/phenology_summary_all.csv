@@ -1,0 +1,186 @@
+partner,species,peak_doy,peak_rate_per_hour,season_onset_doy,season_end_doy,model_k_value,n_detections
+czech_republic,Phylloscopus collybita_Common Chiffchaff,225,549.7519974308246,105,240,20,21433
+czech_republic,Alauda arvensis_Eurasian Skylark,167,358.183669385576,117,197,20,18186
+czech_republic,Merops apiaster_European Bee-eater,216,464.8031424392524,105,240,20,13710
+czech_republic,Turdus merula_Eurasian Blackbird,133,233.93272616559636,108,196,20,13412
+czech_republic,Emberiza calandra_Corn Bunting,165,304.3461196910102,118,205,20,11650
+czech_republic,Anthus trivialis_Tree Pipit,182,328.12433624078574,105,240,20,11594
+czech_republic,Cuculus canorus_Common Cuckoo,139,227.6066991890103,116,171,20,8381
+czech_republic,Sylvia atricapilla_Eurasian Blackcap,184,258.3851581716105,106,187,20,7461
+czech_republic,Coccothraustes coccothraustes_Hawfinch,112,300.4621506469833,105,240,20,5932
+czech_republic,Corvus corax_Common Raven,117,223.45926884893657,105,240,20,5472
+czech_republic,Troglodytes troglodytes_Eurasian Wren,217,1.527250959662933,142,217,20,5
+czech_republic,Locustella luscinioides_Savi's Warbler,202,42.265558531140314,195,233,20,168
+czech_republic,Strix aluco_Tawny Owl,185,39.66929627750483,105,240,20,2161
+czech_republic,Fringilla coelebs_Common Chaffinch,161,295.9690773183464,105,240,20,4559
+czech_republic,Caprimulgus europaeus_Eurasian Nightjar,235,13.835876644439757,105,240,20,256
+croatia,Acrocephalus arundinaceus_Great Reed Warbler,163,618.4073551594291,110,197,20,38553
+croatia,Passer montanus_Eurasian Tree Sparrow,104,591.8993844978216,104,244,20,19048
+croatia,Nycticorax nycticorax_Black-crowned Night-Heron,192,327.8761695996841,118,239,20,18998
+croatia,Zapornia pusilla_Baillon's Crake,111,306.696922452667,107,198,20,17630
+croatia,Motacilla alba_White Wagtail,213,225.7515076206036,104,244,20,8872
+croatia,Erithacus rubecula_European Robin,176,137.52369808772988,120,241,20,7849
+croatia,Tachybaptus ruficollis_Little Grebe,107,108.16054011239619,104,244,20,6048
+croatia,Oriolus oriolus_Eurasian Golden Oriole,129,158.10828545188625,116,218,20,5973
+croatia,Corvus corax_Common Raven,131,48.495524704852286,104,244,20,5358
+croatia,Troglodytes troglodytes_Eurasian Wren,206,184.60859470333554,131,223,20,5226
+croatia,Phylloscopus collybita_Common Chiffchaff,112,25.8645078609902,104,244,20,601
+croatia,Anthus trivialis_Tree Pipit,233,6.726506861510061,109,241,20,221
+croatia,Cisticola juncidis_Zitting Cisticola,211,1.5241043729329722,211,211,20,2
+croatia,Locustella luscinioides_Savi's Warbler,199,13.700290640934613,137,204,20,200
+croatia,Strix aluco_Tawny Owl,135,118.0901702546277,104,244,20,4867
+croatia,Merops apiaster_European Bee-eater,234,239.24771000616485,208,238,20,4354
+croatia,Fringilla coelebs_Common Chaffinch,108,38.560732789404256,104,244,20,1556
+croatia,Caprimulgus europaeus_Eurasian Nightjar,191,1.5553865834833196,104,244,20,80
+spain,Cisticola juncidis_Zitting Cisticola,201,555.8905341318645,157,235,20,76521
+spain,Himantopus himantopus_Black-winged Stilt,219,446.89427552006043,160,228,20,38588
+spain,Caprimulgus europaeus_Eurasian Nightjar,153,372.0496623391726,132,196,20,36195
+spain,Luscinia megarhynchos_Common Nightingale,125,1286.076418043466,104,162,20,29707
+spain,Delichon urbicum_Common House-Martin,141,191.88478600299015,134,203,20,21719
+spain,Melanocorypha calandra_Calandra Lark,153,310.5528136820062,132,162,20,18449
+spain,Acrocephalus arundinaceus_Great Reed Warbler,161,338.0809550697862,160,202,20,16702
+spain,Merops apiaster_European Bee-eater,242,602.7976022708483,84,246,20,15624
+spain,Apus apus_Common Swift,194,115.74528665670553,112,202,20,15565
+spain,Otus scops_Eurasian Scops-Owl,102,743.2240331071704,91,209,20,11197
+spain,Phylloscopus collybita_Common Chiffchaff,87,732.6700075628165,84,246,20,2044
+spain,Anthus trivialis_Tree Pipit,236,6.292224000175022,84,246,20,150
+spain,Troglodytes troglodytes_Eurasian Wren,191,0.23761480571650184,191,191,20,1
+spain,Locustella luscinioides_Savi's Warbler,118,3.4980546858761414,118,240,20,21
+spain,Strix aluco_Tawny Owl,160,2.2499618326473354,84,246,20,323
+spain,Fringilla coelebs_Common Chaffinch,207,0.22234314994860754,201,214,20,3
+denmark,Phylloscopus collybita_Common Chiffchaff,208,575.0308760208635,120,260,20,31646
+denmark,Anthus trivialis_Tree Pipit,123,211.28062145687636,120,260,20,25295
+denmark,Alauda arvensis_Eurasian Skylark,186,366.91265499660955,135,201,20,25041
+denmark,Fringilla coelebs_Common Chaffinch,127,348.91896585704933,120,260,20,20951
+denmark,Phoenicurus phoenicurus_Common Redstart,123,217.45606567395026,120,260,20,20547
+denmark,Troglodytes troglodytes_Eurasian Wren,219,243.43121908679103,120,260,20,13815
+denmark,Curruca communis_Greater Whitethroat,168,399.60730982658714,135,175,20,11291
+denmark,Sitta europaea_Eurasian Nuthatch,256,327.7565407907138,120,260,20,10731
+denmark,Columba palumbus_Common Wood-Pigeon,253,135.36722053595912,120,260,20,10683
+denmark,Cuculus canorus_Common Cuckoo,134,169.06533382282814,124,193,20,10032
+denmark,Cisticola juncidis_Zitting Cisticola,220,0.468341129350608,195,221,20,2
+denmark,Locustella luscinioides_Savi's Warbler,203,0.97981968632709,142,203,20,3
+denmark,Strix aluco_Tawny Owl,233,104.15782143728212,120,260,20,5867
+denmark,Merops apiaster_European Bee-eater,246,1.1437496495417607,135,246,20,31
+denmark,Caprimulgus europaeus_Eurasian Nightjar,154,176.33351130755335,149,178,20,9870
+italy,Phylloscopus bonelli_Western Bonelli's Warbler,160,770.095322206022,144,192,20,9362
+italy,Cisticola juncidis_Zitting Cisticola,210,640.061453988899,184,215,20,6914
+italy,Strix aluco_Tawny Owl,172,230.5022259824618,112,237,20,6327
+italy,Phylloscopus collybita_Common Chiffchaff,114,335.75749779235423,112,237,20,5414
+italy,Anthus trivialis_Tree Pipit,122,519.3099046003055,117,193,20,5078
+italy,Dendrocopos major_Great Spotted Woodpecker,231,173.52573871954334,112,237,20,4650
+italy,Periparus ater_Coal Tit,126,204.71683272023304,112,237,20,4203
+italy,Sylvia atricapilla_Eurasian Blackcap,168,188.60174177218602,112,237,20,3969
+italy,Fringilla coelebs_Common Chaffinch,133,139.13880569269082,113,190,20,3609
+italy,Erithacus rubecula_European Robin,171,234.17571351161914,132,233,20,2680
+italy,Acrocephalus arundinaceus_Great Reed Warbler,116,18.67737932540195,115,137,20,28
+italy,Troglodytes troglodytes_Eurasian Wren,180,33.2098725964895,112,237,20,648
+italy,Locustella luscinioides_Savi's Warbler,224,239.2629269153333,216,236,20,876
+italy,Merops apiaster_European Bee-eater,138,7.122371155016137,138,138,20,8
+italy,Caprimulgus europaeus_Eurasian Nightjar,165,36.854113477543756,116,204,20,759
+belgium,Troglodytes troglodytes_Eurasian Wren,141,712.7011291870762,99,202,20,25199
+belgium,Phylloscopus collybita_Common Chiffchaff,183,496.7120536339192,93,242,20,24026
+belgium,Cuculus canorus_Common Cuckoo,151,449.9733619547877,109,181,20,14285
+belgium,Corvus monedula_Eurasian Jackdaw,203,240.9437335555029,93,242,20,8147
+belgium,Certhia brachydactyla_Short-toed Treecreeper,234,130.91009441374882,93,242,20,6360
+belgium,Cettia cetti_Cetti's Warbler,118,434.3208735833603,110,132,20,5319
+belgium,Columba palumbus_Common Wood-Pigeon,209,127.99257922539725,93,242,20,4891
+belgium,Picus viridis_Eurasian Green Woodpecker,95,145.6332205843444,93,242,20,4511
+belgium,Turdus merula_Eurasian Blackbird,194,72.90643579570755,93,242,20,3945
+belgium,Strix aluco_Tawny Owl,232,167.97626106238772,93,242,20,3875
+belgium,Anthus trivialis_Tree Pipit,233,8.377996432627405,93,242,20,148
+belgium,Acrocephalus arundinaceus_Great Reed Warbler,188,1.798076656052798,164,188,20,3
+belgium,Locustella luscinioides_Savi's Warbler,178,1.8917115658308028,104,178,20,3
+belgium,Fringilla coelebs_Common Chaffinch,144,9.68522700249294,125,221,20,214
+belgium,Caprimulgus europaeus_Eurasian Nightjar,150,3.9451361369294498,93,242,20,76
+the_netherlands,Phylloscopus collybita_Common Chiffchaff,179,482.52122443995194,93,241,20,53242
+the_netherlands,Anthus trivialis_Tree Pipit,137,441.46250906072675,97,235,20,52736
+the_netherlands,Lullula arborea_Wood Lark,96,324.4310853132164,93,241,20,34004
+the_netherlands,Troglodytes troglodytes_Eurasian Wren,221,512.3308687760657,97,229,20,31295
+the_netherlands,Acrocephalus schoenobaenus_Sedge Warbler,120,261.4878031372078,95,176,20,26316
+the_netherlands,Locustella luscinioides_Savi's Warbler,109,194.4243767494725,93,241,20,25740
+the_netherlands,Dendrocopos major_Great Spotted Woodpecker,210,338.490882521023,93,241,20,18317
+the_netherlands,Anser anser_Graylag Goose,236,175.6382806697315,93,241,20,17589
+the_netherlands,Strix aluco_Tawny Owl,232,208.33064194564835,93,241,20,13484
+the_netherlands,Locustella naevia_Common Grasshopper-Warbler,129,316.3139706216835,114,133,20,12335
+the_netherlands,Acrocephalus arundinaceus_Great Reed Warbler,171,1.4376102791138405,158,200,20,11
+the_netherlands,Cisticola juncidis_Zitting Cisticola,101,0.1461419455868599,101,101,20,1
+the_netherlands,Fringilla coelebs_Common Chaffinch,158,37.06530945954231,93,241,20,6046
+the_netherlands,Caprimulgus europaeus_Eurasian Nightjar,206,27.253426544487038,101,235,20,1625
+sweden,Corvus frugilegus_Rook,244,393.55313338052383,110,247,20,35382
+sweden,Curruca communis_Greater Whitethroat,145,367.61202565751006,118,194,20,33704
+sweden,Luscinia luscinia_Thrush Nightingale,130,421.66819585208435,122,160,20,27730
+sweden,Anser anser_Graylag Goose,116,374.7873353975739,110,247,20,21926
+sweden,Phylloscopus collybita_Common Chiffchaff,201,270.10004286784397,114,244,20,21027
+sweden,Corvus monedula_Eurasian Jackdaw,220,227.69042158424966,110,247,20,14678
+sweden,Locustella naevia_Common Grasshopper-Warbler,165,1543.4110402500644,128,168,20,11189
+sweden,Hirundo rustica_Barn Swallow,208,138.7069349991167,123,245,20,9750
+sweden,Strix aluco_Tawny Owl,240,143.03805458038897,110,247,20,8941
+sweden,Phoenicurus phoenicurus_Common Redstart,115,168.11520208748183,110,247,20,7270
+sweden,Anthus trivialis_Tree Pipit,244,70.11123040013615,110,247,20,2587
+sweden,Acrocephalus arundinaceus_Great Reed Warbler,219,0.7152321823854599,115,219,20,9
+sweden,Troglodytes troglodytes_Eurasian Wren,179,35.72268469547488,122,216,20,1440
+sweden,Locustella luscinioides_Savi's Warbler,191,0.4648916694199096,191,192,20,1
+sweden,Merops apiaster_European Bee-eater,131,0.04805592865936181,110,247,20,6
+sweden,Fringilla coelebs_Common Chaffinch,122,77.6442898205923,114,173,20,6018
+sweden,Caprimulgus europaeus_Eurasian Nightjar,208,4.081861893815711,150,235,20,161
+ireland,Regulus regulus_Goldcrest,168,1014.0309863331639,121,194,20,6816
+ireland,Fringilla coelebs_Common Chaffinch,147,860.0187638721696,121,194,20,2656
+ireland,Troglodytes troglodytes_Eurasian Wren,177,689.047270413044,124,188,20,2022
+ireland,Anthus pratensis_Meadow Pipit,190,939.7298987843831,130,192,20,2013
+ireland,Erithacus rubecula_European Robin,173,622.9076287383034,121,194,20,1506
+ireland,Muscicapa striata_Spotted Flycatcher,143,3193.7602305945616,140,146,20,1417
+ireland,Alauda arvensis_Eurasian Skylark,130,252.51046769563288,128,186,20,1400
+ireland,Certhia familiaris_Eurasian Treecreeper,124,209.4343133739261,121,194,20,1211
+ireland,Cuculus canorus_Common Cuckoo,143,5598.627819894619,142,143,20,867
+ireland,Sylvia atricapilla_Eurasian Blackcap,160,141.37222217093793,123,176,20,663
+ireland,Anthus trivialis_Tree Pipit,191,35.01201359264421,121,194,20,62
+ireland,Locustella luscinioides_Savi's Warbler,154,3.589506253953985,154,154,20,1
+ireland,Strix aluco_Tawny Owl,186,12.177110635432967,129,191,20,36
+ireland,Caprimulgus europaeus_Eurasian Nightjar,131,0.7212856176652567,128,133,20,2
+slovakia,Acrocephalus arundinaceus_Great Reed Warbler,131,882.8345459658264,114,280,20,57448
+slovakia,Locustella luscinioides_Savi's Warbler,139,697.8298202061925,115,197,20,32444
+slovakia,Sylvia atricapilla_Eurasian Blackcap,168,309.3618760404612,142,237,20,15084
+slovakia,Acrocephalus schoenobaenus_Sedge Warbler,116,406.17834064560464,114,280,20,14772
+slovakia,Merops apiaster_European Bee-eater,242,349.0017931786837,193,247,20,13945
+slovakia,Oriolus oriolus_Eurasian Golden Oriole,184,252.18153987661162,117,235,20,13791
+slovakia,Phylloscopus collybita_Common Chiffchaff,192,282.43557435332053,114,280,20,13230
+slovakia,Emberiza schoeniclus_Reed Bunting,165,170.09468358967325,114,280,20,9543
+slovakia,Muscicapa striata_Spotted Flycatcher,221,149.7481046822431,159,245,20,6466
+slovakia,Strix aluco_Tawny Owl,270,185.1595057424203,114,280,20,5671
+slovakia,Anthus trivialis_Tree Pipit,244,35.78684075726155,114,280,20,676
+slovakia,Cisticola juncidis_Zitting Cisticola,252,1.0864290239170766,252,252,20,1
+slovakia,Troglodytes troglodytes_Eurasian Wren,274,1.5849120600668545,114,280,20,53
+slovakia,Fringilla coelebs_Common Chaffinch,275,68.40185109638044,114,280,20,3566
+slovakia,Caprimulgus europaeus_Eurasian Nightjar,142,64.63181659382408,119,162,20,861
+finland,Anthus trivialis_Tree Pipit,167,680.2091953708489,130,241,20,28800
+finland,Turdus iliacus_Redwing,128,586.8407923351433,127,359,20,23245
+finland,Turdus merula_Eurasian Blackbird,283,431.74740843337247,139,331,20,4711
+finland,Dendrocopos major_Great Spotted Woodpecker,327,114381.4420766521,303,346,20,3995
+finland,Phylloscopus trochilus_Willow Warbler,171,240.0975479602253,153,173,20,3719
+finland,Scolopax rusticola_Eurasian Woodcock,196,148.0821143971201,127,359,20,3696
+finland,Fringilla coelebs_Common Chaffinch,309,727.9399589751373,171,349,20,3496
+finland,Cuculus canorus_Common Cuckoo,160,78.49537839698998,130,188,20,3249
+finland,Columba palumbus_Common Wood-Pigeon,295,15549.555382650718,272,324,20,2882
+finland,Strix uralensis_Ural Owl,325,6046.212323446868,291,351,20,2644
+finland,Phylloscopus collybita_Common Chiffchaff,137,29.413615036096814,128,268,20,411
+finland,Troglodytes troglodytes_Eurasian Wren,238,53.975116003384485,194,257,20,179
+finland,Locustella luscinioides_Savi's Warbler,140,0.8290842929745947,140,140,20,1
+finland,Strix aluco_Tawny Owl,319,805.0422910821254,225,348,20,984
+finland,Caprimulgus europaeus_Eurasian Nightjar,206,2.618963535806814,187,230,20,25
+bulgaria,Phylloscopus collybita_Common Chiffchaff,144,570.1077068346242,143,260,20,14350
+bulgaria,Merops apiaster_European Bee-eater,223,1113.1421431547035,211,243,20,9380
+bulgaria,Coccothraustes coccothraustes_Hawfinch,189,550.5886442647413,172,209,20,9293
+bulgaria,Strix aluco_Tawny Owl,251,354.46338638109955,143,260,20,6586
+bulgaria,Columba palumbus_Common Wood-Pigeon,198,288.8716389087408,153,219,20,6054
+bulgaria,Chloris chloris_European Greenfinch,208,272.7368594042289,159,211,20,5334
+bulgaria,Pica pica_Eurasian Magpie,180,339.2226782552664,168,193,20,4786
+bulgaria,Erithacus rubecula_European Robin,157,259.0275972708073,143,260,20,4763
+bulgaria,Sylvia atricapilla_Eurasian Blackcap,151,496.5465023624378,146,175,20,4697
+bulgaria,Carduelis carduelis_European Goldfinch,182,121.6365225291788,161,205,20,3760
+bulgaria,Anthus trivialis_Tree Pipit,245,24.408869619691508,143,260,20,231
+bulgaria,Acrocephalus arundinaceus_Great Reed Warbler,159,11.872640792867454,158,179,20,77
+bulgaria,Troglodytes troglodytes_Eurasian Wren,240,24.760720586005903,143,260,20,326
+bulgaria,Locustella luscinioides_Savi's Warbler,173,180.53369253902036,165,187,20,2336
+bulgaria,Fringilla coelebs_Common Chaffinch,157,139.9401672251601,153,163,20,653
+bulgaria,Caprimulgus europaeus_Eurasian Nightjar,190,81.6535366795176,164,239,20,2485
