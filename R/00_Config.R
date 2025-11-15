@@ -40,6 +40,9 @@ for (pkg in packages) {
 #----------------------------------------------------------#
 # Load data -----
 #----------------------------------------------------------#
+#--------------------------------------------------#
+## Site locations -----
+#--------------------------------------------------#
 locations <- readr::read_csv(
   "Data/Inputs/locations_20251105.csv",
 )  %>%
@@ -179,7 +182,13 @@ okabe_ito <- setNames(
   c("F", "G", "W", "O")
 )
 
-# Load acoustic data ----
+## Red Lists ----
+red_list <- 
+  readr::read_csv(
+    "Data/Inputs/European_Red_List_2024_December_fixed.csv"
+  )
+
+## Load acoustic data ----
 # Extract the file ID from your Google Drive link:
 # URL: https://drive.google.com/file/d/1fSjoRQjQ9Ub03eSpKgcLiMZ5A1y9wwaO/view?usp=drive_link
 # ID:                                 1fSjoRQjQ9Ub03eSpKgcLiMZ5A1y9wwaO
@@ -189,9 +198,9 @@ gdrive_file_id <- "1fSjoRQjQ9Ub03eSpKgcLiMZ5A1y9wwaO"
 # This file will be automatically cleaned up
 temp_zip_path <- tempfile(fileext = ".zip")
 
-# -----------------------------------------------------------------
-# 1. Download the file from Google Drive
-# -----------------------------------------------------------------
+# ----------------------------------------------------------------- #
+# 1. Download the file from Google Drive ----
+# ----------------------------------------------------------------- #
 
 # Tell googledrive not to use a logged-in user.
 # This is best practice for public files.
@@ -205,9 +214,9 @@ drive_download(
 )
 message("Download complete: ", temp_zip_path)
 
-# -----------------------------------------------------------------
-# 2. Find the CSV file *inside* the zip
-# -----------------------------------------------------------------
+# ----------------------------------------------------------------- #
+# 2. Find the CSV file *inside* the zip ----
+# ----------------------------------------------------------------- #
 
 # Get a list of all files inside the zip archive
 files_in_zip <- unzip(temp_zip_path, list = TRUE)
@@ -225,28 +234,48 @@ if (length(csv_file_name) == 0) {
   message("Found CSV file in zip: ", csv_file_name)
 }
 
-# -----------------------------------------------------------------
-# 3. Read the CSV directly from the zip
-# -----------------------------------------------------------------
+# ----------------------------------------------------------------- #
+# 3. Read the CSV directly from the zip ----
+# ----------------------------------------------------------------- #
 
 # Use the unz() function to create a connection to the file
 # *without* fully extracting it to disk.
 # readr::read_csv() can read directly from this connection.
 message("Reading CSV data...")
-acoustic_data <- readr::read_csv(
-  unz(temp_zip_path, csv_file_name)
-)
-
+acoustic_data_raw <- 
+  readr::read_csv(
+    unz(temp_zip_path, csv_file_name)
+    ) 
 message("Successfully read data.")
 
-# -----------------------------------------------------------------
-# 4. Success!
-# -----------------------------------------------------------------
+acoustic_data <- 
+  acoustic_data_raw %>%
+  dplyr::mutate(
+    species_name = stringr::str_extract(species, "^[^_]+")
+    ) %>%
+  dplyr::left_join(
+    .,
+    red_list %>%
+      dplyr::select(
+        scientificName,
+        europeanRegionalRedListCategory
+      ),
+    by = c("species_name" = "scientificName")
+  ) %>%
+  dplyr::select(
+    -c(sourcefileid, filename)
+  )
+
+# ----------------------------------------------------------------- #
+# 4. Success! ----
+# ----------------------------------------------------------------- #
 
 # Clean up the temporary zip file
 file.remove(temp_zip_path)
+file.remove(acoustic_data_raw)
 
 # Show the first few rows of your new data frame
 print(head(acoustic_data))
 
 # Your data is now in the 'data' data frame
+
