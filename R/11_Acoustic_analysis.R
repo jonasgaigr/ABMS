@@ -2,7 +2,7 @@
 # Exploratory Data Analysis (EDA) of Acoustic Detections
 
 # -----------------------------------------------------------------#
-# 1. Setup & Filtering----
+# Setup & Filtering----
 # -----------------------------------------------------------------#
 
 # Define your confidence threshold
@@ -32,7 +32,7 @@ data_filtered <- acoustic_data %>%
 message("Data filtered and binned successfully.")
 
 # ----------------------------------------------------------------- #
-# 3. High-Level Summaries ----
+# High-Level Summaries ----
 # ----------------------------------------------------------------- #
 
 # Get a high-level overview
@@ -52,16 +52,16 @@ message("--- High-Level Summary (Confidence >= ", confidence_threshold, ") ---")
 print(summary_stats)
 
 message("--- Total Raw Detections (Before Filtering) ---")
-print(nrow(data))
+print(nrow(acoustic_data))
 
 # ----------------------------------------------------------------- #
-# 4. Plot 1: Confidence Score Distribution (on *original* data) ----
+# Plot 1: Confidence Score Distribution (on *original* data) ----
 # ----------------------------------------------------------------- #
 # This helps you see if your 0.7 threshold is reasonable.
 
 message("Generating Plot 1: Confidence Distribution...")
 
-confidence_histogram <- ggplot2::ggplot(data, ggplot2::aes(x = confidence)) +
+confidence_histogram <- ggplot2::ggplot(acoustic_data, ggplot2::aes(x = confidence)) +
   ggplot2::geom_histogram(
     bins = 50,
     fill = "skyblue",
@@ -105,7 +105,7 @@ ggplot2::ggsave(
 
 
 # ----------------------------------------------------------------- #
-# 5. Plot 2: Top Species (MODIFIED for stacked bars)
+# Plot 2.1: Top Species ----
 # ----------------------------------------------------------------- #
 # What are the most common species found, stacked by confidence?
 
@@ -156,7 +156,7 @@ top_species_plot <- ggplot2::ggplot(
 
 # print(top_species_plot)
 ggplot2::ggsave(
-  "Outputs/Figures/2_top_species_plot_stacked.png", # Changed filename
+  "Outputs/Figures/2_1_top_species_plot_stacked.png", # Changed filename
   top_species_plot,
   width = 11, # Increased width slightly for legend
   height = 7
@@ -165,7 +165,173 @@ ggplot2::ggsave(
 message("Stacked species plot saved.")
 
 # ----------------------------------------------------------------- #
-# 6. Plot 3: Detections per Recording (on *filtered* data) ----
+# Plot 2.2: Top RL Species (MODIFIED for stacked bars) ----
+# ----------------------------------------------------------------- #
+# What are the most common species found, stacked by confidence?
+
+message("Generating Plot 2: Top RL Species (Stacked)...")
+
+# keep same RL filtering you used before (exclude LC, RE, NA and NA values)
+rl_filter <- data_filtered %>%
+  dplyr::filter(
+    europeanRegionalRedListCategory != "LC" &
+      europeanRegionalRedListCategory != "RE" &
+      europeanRegionalRedListCategory != "NA" &
+      !is.na(europeanRegionalRedListCategory)
+  )
+
+# 1) Find top species PER red-list category (counting all records)
+top_species_per_cat <- rl_filter %>%
+  count(europeanRegionalRedListCategory, species, name = "total") %>%
+  group_by(europeanRegionalRedListCategory) %>%
+  slice_max(order_by = total, n = top_n_species, with_ties = FALSE) %>%
+  ungroup()
+
+# 2) Build the plotting dataset: keep only those top species (per category),
+#    then count occurrences per confidence_bin
+top_species_data_rl <- data_filtered %>%
+  semi_join(top_species_per_cat, by = c("europeanRegionalRedListCategory", "species")) %>%
+  count(europeanRegionalRedListCategory, species, confidence_bin, name = "n")
+
+# 3) (Optional) make species an ordered factor within each facet so bars are sorted
+#    We rely on fct_reorder() with sum(n) — since species belong to a single category
+#    this effectively orders them per-facet.
+top_species_data_rl <- top_species_data_rl %>%
+  group_by(europeanRegionalRedListCategory, species) %>%
+  mutate(total_per_species = sum(n)) %>%
+  ungroup() %>%
+  mutate(species = forcats::fct_reorder(species, total_per_species, .fun = sum))
+
+# 4) Plot with one facet per red-list category
+top_species_plot_rl <- ggplot(top_species_data_rl,
+                              aes(x = species, y = n, fill = confidence_bin)) +
+  geom_col() +
+  coord_flip() +
+  facet_wrap(~ europeanRegionalRedListCategory, scales = "free_y", ncol = 2) +
+  scale_fill_brewer(palette = "Set2", direction = 1) +
+  labs(
+    title = paste("Top", top_n_species, "species per Red-List category"),
+    subtitle = paste("Based on detections with confidence >=", confidence_threshold),
+    x = "Species",
+    y = "Number of detections",
+    fill = "Confidence bin"
+  ) +
+  scale_y_log10() +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(face = "italic"),
+    strip.text = element_text(face = "bold")
+  )
+
+# save
+ggsave(
+  filename = "Outputs/Figures/2_2_top_rl_species_plot_faceted.png",
+  plot = top_species_plot_rl,
+  width = 12,
+  height = 9
+)
+
+message("Stacked species plot saved.")
+
+# ----------------------------------------------------------------- #
+# Plot 2.3: Top Species by partner ----
+# ----------------------------------------------------------------- #
+# directory for outputs
+out_dir <- "Outputs/Figures"
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
+# which partners to process
+partners <- data_filtered %>%
+  distinct(partner) %>%
+  drop_na() %>%
+  pull(partner)
+
+message("Partners detected: ", paste(partners, collapse = ", "))
+
+# number of species shown
+top_n_species <- 20
+
+for (p in partners) {
+  message("Processing: ", p)
+  
+  # ------------------------------------------------------------------ #
+  # 1) Filter dataset to one partner
+  # ------------------------------------------------------------------ #
+  df_p <- data_filtered %>%
+    filter(partner == p)
+  
+  if (nrow(df_p) == 0) {
+    message("  -> No data for this partner. Skipping.")
+    next
+  }
+  
+  # ------------------------------------------------------------------ #
+  # 2) Select top N species *within this partner*
+  # ------------------------------------------------------------------ #
+  top_species_names <- df_p %>%
+    count(species, sort = TRUE) %>%
+    slice_head(n = top_n_species) %>%
+    pull(species)
+  
+  if (length(top_species_names) == 0) {
+    message("  -> No species for this partner. Skipping.")
+    next
+  }
+  
+  # ------------------------------------------------------------------ #
+  # 3) Count confidence-bin stats (partner-filtered)
+  # ------------------------------------------------------------------ #
+  top_species_data <- df_p %>%
+    filter(species %in% top_species_names) %>%
+    count(species, confidence_bin, name = "n") %>%
+    group_by(species) %>%
+    mutate(total = sum(n)) %>%
+    ungroup() %>%
+    mutate(species = fct_reorder(species, total, .fun = sum))
+  
+  # ------------------------------------------------------------------ #
+  # 4) Plot
+  # ------------------------------------------------------------------ #
+  top_species_plot <- ggplot(
+    top_species_data,
+    aes(x = species, y = n, fill = confidence_bin)
+  ) +
+    geom_col() +
+    coord_flip() +
+    scale_fill_brewer(palette = "Set2") +
+    labs(
+      title = paste0("Top ", top_n_species, " Species — ", p),
+      subtitle = paste("Based on detections with confidence ≥", confidence_threshold),
+      x = "Species",
+      y = "Number of Detections",
+      fill = "Confidence Bin"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.y = element_text(face = "italic")
+    )
+  
+  # ------------------------------------------------------------------ #
+  # 5) Save (partner-safe filename)
+  # ------------------------------------------------------------------ #
+  p_safe <- str_replace_all(p, "[^A-Za-z0-9_-]", "_")
+  
+  ggsave(
+    filename = file.path(out_dir, paste0("2_1_top_species_plot_stacked_", p_safe, ".png")),
+    plot = top_species_plot,
+    width = 11,
+    height = 7,
+    dpi = 300
+  )
+  
+  message("  -> Saved for partner: ", p)
+}
+
+message("All partner-specific plots completed.")
+
+
+# ----------------------------------------------------------------- #
+# Plot 3: Detections per Recording (on *filtered* data) ----
 # ----------------------------------------------------------------- #
 # How "busy" are the recordings? Do most have 1-2 detections or 50+?
 
@@ -204,7 +370,7 @@ ggplot2::ggsave(
 )
 
 # ----------------------------------------------------------------- #
-# 7. Summary Table by Group (e.g., deployment) ----
+# Summary Table by Group (e.g., deployment) ----
 # ----------------------------------------------------------------- #
 
 message("Generating Summary Table by Deployment...")
@@ -242,22 +408,9 @@ deployment_summary_site <- data_filtered %>%
   ) %>%
   dplyr::arrange(dplyr::desc(total_detections)) # Sort by most detections
 
-# Print the summary table
-print(deployment_summary)
-
 # ----------------------------------------------------------------- #
 # Save All Summary Tables ---- 
 # ----------------------------------------------------------------- #
-
-# 1. Install required packages (if you don't have them)
-# install.packages("readr")     # For saving CSV
-# install.packages("flextable") # For creating the table object
-# install.packages("officer")   # For saving as .docx
-
-# 2. Load the libraries
-library(readr)
-library(flextable)
-library(officer)
 
 # --- Define Output Filenames ---
 # We define clear, distinct names for each output file.
