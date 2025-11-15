@@ -15,6 +15,7 @@ packages <- c(
   "remotes",
   "ggtext",
   "vegan",
+  "mgcv",
   "googledrive",
   "ggplot2",
   "ggrepel",
@@ -251,8 +252,20 @@ message("Successfully read data.")
 acoustic_data <- 
   acoustic_data_raw %>%
   dplyr::mutate(
-    species_name = stringr::str_extract(species, "^[^_]+")
-    ) %>%
+    species_name = stringr::str_extract(species, "^[^_]+"),
+    date_raw = str_extract(filename, "(?<=_)\\d{8}(?=_)"),
+    time_raw = str_extract(filename, "(?<=_)\\d{6}(?=\\.wav)"),
+    date = ymd(date_raw),
+    time = hms(
+      str_c(
+        substr(time_raw, 1, 2), ":",
+        substr(time_raw, 3, 4), ":",
+        substr(time_raw, 5, 6)
+        )
+      ),
+    datetime = ymd_hms(str_c(date_raw, time_raw))
+  ) %>%
+  dplyr::select(-date_raw, -time_raw) %>%
   dplyr::left_join(
     .,
     red_list %>%
