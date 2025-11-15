@@ -792,9 +792,9 @@ ggplot2::ggsave(
 # print(phenology_plot)
 
 
-# -----------------------------------------------------------------
-# 5. Extract Derived Metrics (Peak, Onset, etc.)
-# -----------------------------------------------------------------
+# -----------------------------------------------------------------#
+# 5. Extract Derived Metrics (Peak, Onset, etc.) ----
+# -----------------------------------------------------------------#
 message("Extracting key phenology dates...")
 
 # Find the single, maximum peak rate value
@@ -833,17 +833,8 @@ message(paste("Season Onset (10%): DOY", season_onset$doy))
 message(paste("Season End (10%):   DOY", season_end$doy))
 
 # -----------------------------------------------------------------#
-# Phenology Analysis in a Loop
+# Phenology Analysis in a Loop ----
 # -----------------------------------------------------------------#
-
-# 1. Load required libraries (add readr for saving)
-library(dplyr)
-library(lubridate)
-library(mgcv)
-library(ggplot2)
-library(tidyr)
-library(readr) # For saving the final CSV
-
 # -----------------------------------------------------------------#
 # 0. Setup & Configuration ----
 # -----------------------------------------------------------------#
@@ -858,7 +849,7 @@ library(readr) # For saving the final CSV
 # Your data MUST look like this:
 # sourcefileid | partner | deployment | ... | species | ... | date (Date)
 #
-# ---------------------------
+# ---------------------------#
 
 # --- Placeholder: Create recording_metadata from data_filtered ---
 # This still assumes 'data_filtered' contains ALL files (even w/ 0 detections)
@@ -873,6 +864,16 @@ recording_metadata <- data_filtered %>%
 n_top_species <- 10 # Get top 10 species per partner
 partners_list <- unique(data_filtered$partner)
 
+# --- NEW: Get Overall Top Species ---
+message(paste("--- Finding", n_top_species, "OVERALL top species... ---"))
+overall_top_species_list <- data_filtered %>%
+  dplyr::count(species, sort = TRUE) %>%
+  dplyr::slice_head(n = n_top_species) %>%
+  dplyr::pull(species)
+
+message("...Overall top species found:")
+print(overall_top_species_list)
+
 # Create an empty list to store the results from each loop
 all_phenology_results <- list()
 
@@ -886,13 +887,22 @@ for (current_partner in partners_list) {
   message(paste("\n--- Processing Partner:", current_partner, "---"))
   
   # 1a. Find the top N species *for this partner*
-  partner_top_species <- data_filtered %>%
+  partner_top_species_list <- data_filtered %>%
     dplyr::filter(partner == current_partner) %>%
     dplyr::count(species, sort = TRUE) %>%
     dplyr::slice_head(n = n_top_species) %>%
     dplyr::pull(species) # Get species names as a vector
   
-  # 1b. Filter the recording metadata *once* for this partner
+  # 1b. (NEW) Combine partner list with overall list
+  # We use union() to get a single, unique list of species to process
+  species_to_process <- union(partner_top_species_list, overall_top_species_list)
+  
+  message(paste(
+    "... Found", length(partner_top_species_list), "top species for partner.",
+    "Total unique species to process (w/ overall list):", length(species_to_process)
+  ))
+  
+  # 1c. Filter the recording metadata *once* for this partner
   partner_metadata <- recording_metadata %>%
     dplyr::filter(partner == current_partner)
   
@@ -905,11 +915,13 @@ for (current_partner in partners_list) {
   # 2. Start Inner Loop (Species) ----
   # -----------------------------------------------------------------#
   
-  for (current_species in partner_top_species) {
+  # (MODIFIED) This now loops over the combined 'species_to_process' list
+  for (current_species in species_to_process) {
+    
+    # ... (The rest of your script from here down is unchanged) ...
     
     message(paste("... Processing Species:", current_species))
     
-    # Use tryCatch to prevent one species/partner from crashing the whole loop
     tryCatch({
       
       # 2a. Filter detections for the current partner AND species
@@ -1039,7 +1051,7 @@ for (current_partner in partners_list) {
       # Create a clean filename
       clean_species_name <- gsub("[^a-zA-Z0-9_]", "-", current_species) # Clean non-alphanumeric
       plot_filename <- paste0(
-        "Outputs/Figures/phenology_",
+        "Outputs/Figures/Phenology/phenology_",
         current_partner,
         "_",
         clean_species_name,
@@ -1116,7 +1128,7 @@ final_phenology_summary <- dplyr::bind_rows(all_phenology_results)
 # Save the final CSV
 readr::write_csv(
   final_phenology_summary,
-  "Outputs/phenology_summary_all.csv"
+  "Outputs/Results/phenology_summary_all.csv"
 )
 
 message("All results saved to Outputs/phenology_summary_all.csv")
