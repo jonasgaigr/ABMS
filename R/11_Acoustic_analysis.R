@@ -495,24 +495,47 @@ message("--- EDA script complete. ---")
 # ----------------------------------------------------------------- #
 # Rarefaction and Extrapolation ---- 
 # ----------------------------------------------------------------- #
-# 1. Summarize the filtered data to get detection counts per species per site
-# We use the filtered data (confidence >= 0.7)
-species_counts_wide <- data_filtered %>%
-  # Group by the desired comparison level (e.g., deployment) and species
-  dplyr::group_by(deployment, species) %>%
+# ----------------------------------------------------------------- #
+# Create Species-Site Matrix (MODIFIED)
+# ----------------------------------------------------------------- #
+# ROOT CAUSE: 'deployment' names (e.g., "F1") are not unique
+# across 'partners'.
+#
+# SOLUTION: Create a new, unique identifier 'partner_deployment'
+# by combining 'partner' and 'deployment'.
+# ----------------------------------------------------------------- #
+
+# 1. Create a unique site identifier in the original filtered data
+data_filtered_unique <- data_filtered %>%
+  dplyr::mutate(
+    # Create the new ID, e.g., "czech_republic_F1"
+    partner_deployment = paste0(partner, "_", deployment)
+  )
+
+# 2. Summarize data using the new unique ID
+species_counts_wide <- data_filtered_unique %>%
+  # Group by the new unique ID and species
+  dplyr::group_by(partner_deployment, species) %>%
   dplyr::summarise(
     n = dplyr::n(),
     .groups = 'drop'
   ) %>%
-  # Convert long format to wide format (Species-by-Sample matrix)
+  # Convert long to wide
   tidyr::pivot_wider(
-    id_cols = deployment,
+    id_cols = partner_deployment, # Use the unique ID
     names_from = species,
     values_from = n,
     values_fill = 0
   ) %>%
-  # Move the 'deployment' column into the row names for the matrix format
-  tibble::column_to_rownames(var = "deployment")
+  # Move the unique ID column into the row names
+  tibble::column_to_rownames(var = "partner_deployment")
+
+# 3. Create the new, correct matrix
+# All subsequent code (rarefaction, NMDS, dendrogram)
+# MUST use this new 'species_count_matrix'
+species_count_matrix <- as.matrix(species_counts_wide)
+
+message("New 'species_count_matrix' created with unique 'partner_deployment' rows.")
 
 # Convert to a simple matrix (iNEXT/vegan prefer this)
 species_count_matrix <- as.matrix(species_counts_wide)
@@ -536,43 +559,207 @@ rarefied_df <- data.frame(
 message("Richness rarefied to an effort of ", min_sample_size, " detections.")
 print(head(rarefied_df))
 
+# -----------------------------------------------------------------#
+# Compositional Analysis (NMDS) ----
+# -----------------------------------------------------------------#
+
 # Use the same 'species_count_matrix' created above.
+# We will NOT use decostand(method = "total") because Bray-Curtis
+# is designed for raw count data.
 
-# Standardize by total site detections (Standardization Method 'total')
-# This converts the raw counts to relative proportions within each site.
-# This controls for the varying *number of total detections* per site.
-standardized_matrix <- vegan::decostand(
-  species_count_matrix,
-  method = "total"
-)
-
-# Run NMDS on the standardized data
-nmds_result <- vegan::metaMDS(
-  standardized_matrix,
-  distance = "bray", # Bray-Curtis distance is standard for abundance data
-  k = 2,              # 2 dimensions for easy plotting
-  trymax = 100        # Try up to 100 random starts to find a stable solution
-)
 
 # Extract coordinates and merge with partner/habitat metadata for plotting
 data_scores <- data.frame(vegan::scores(nmds_result, display = "sites")) %>%
-  tibble::rownames_to_column(var = "deployment") %>%
-  # Merge back with your original data to get the 'partner' column
+  # The row names are "belgium_F1", etc.
+  # We'll rename the new column to 'partner_deployment' to be clear.
+  tibble::rownames_to_column(var = "partner_deployment") %>%
+  
+  # Merge back with your UNIQUE data to get the 'partner' column
   dplyr::left_join(
-    data_filtered %>% dplyr::select(deployment, partner) %>% dplyr::distinct(),
-    by = "deployment"
+    # Use the 'data_filtered_unique' table we created earlier
+    data_filtered_unique %>% 
+      dplyr::select(partner_deployment, partner) %>% 
+      dplyr::distinct(), # Get unique rows
+    
+    by = "partner_deployment" # Join by the correct, unique ID
   )
 
-# Plot the NMDS results
+# Plot the NMDS results (this code is now correct)
 nmds_plot <- ggplot2::ggplot(data_scores, ggplot2::aes(x = NMDS1, y = NMDS2, color = partner)) +
   ggplot2::geom_point(size = 3, alpha = 0.7) +
-  ggplot2::stat_ellipse() + # Draw a confidence ellipse around each partner group
+  ggplot2::stat_ellipse() + 
   ggplot2::labs(
     title = "Compositional Dissimilarity (NMDS)",
-    subtitle = "Standardized by total site detections",
+    subtitle = "Based on Bray-Curtis dissimilarity on raw counts",
     caption = paste("Stress:", round(nmds_result$stress, 3))
   ) +
   ggplot2::theme_minimal()
+
+print(nmds_plot)
+# ggplot2::ggsave("Outputs/Figures/nmds_plot.png", nmds_plot, width = 8, height = 6)
+
+# ----------------------------------------------------------------- #
+# Deployment Similarity Dendrogram ----
+# (Requires 'vegan' and 'dendextend' packages)
+# ----------------------------------------------------------------- #
+
+# ----------------------------------------------------------------- #
+# ----------------------------------------------------------------- #
+# 1. Calculate Dissimilarity Matrix
+# (This uses the *new* matrix created above)
+message("Calculating Bray-Curtis dissimilarity matrix...")
+bray_dissim_matrix <- vegan::vegdist(species_count_matrix, method = "bray")
+
+# 2. Perform Hierarchical Clustering
+message("Running hierarchical clustering (hclust)...")
+h_cluster <- hclust(bray_dissim_matrix, method = "average")
+
+# 3. Create and Color the Dendrogram
+message("Creating and coloring dendrogram...")
+
+# A) Convert to a 'dendextend' object
+dend <- as.dendrogram(h_cluster)
+
+# B) Create a lookup table (partner_deployment -> partner)
+# We use the 'data_filtered_unique' table we created
+label_lookup <- data_filtered_unique %>%
+  dplyr::select(partner_deployment, partner) %>%
+  dplyr::distinct() %>%
+  # This is now safe, as 'partner_deployment' is unique
+  tibble::column_to_rownames(var = "partner_deployment") 
+
+# C) Get the labels in the dendrogram's order
+dend_labels <- labels(dend)
+
+# D) Find the partner group for each label
+partner_groups <- label_lookup[dend_labels, "partner"]
+
+# E) Create a color palette
+unique_partners <- unique(partner_groups)
+n_partners <- length(unique_partners)
+partner_colors <- scales::hue_pal()(n_partners)
+names(partner_colors) <- unique_partners
+
+# F) Map partner names to colors
+label_colors <- partner_colors[partner_groups]
+
+# G) Apply the colors to the dendrogram labels
+dend <- dendextend::set(dend, "labels_col", label_colors)
+
+# H) (Recommended) Make labels smaller
+# The new labels are long, so 0.5 or 0.4 might be needed
+dend <- dendextend::set(dend, "labels_cex", 0.5)
+
+# -----------------------------------------------------------------
+# Deployment Similarity Dendrogram (ggplot2 solution)
+# (Requires 'vegan', 'ggdendro', 'ggplot2', 'dplyr')
+# -----------------------------------------------------------------
+
+# -----------------------------------------------------------------
+# 1. & 2. Calculate Dissimilarity & Cluster
+# -----------------------------------------------------------------
+# (This part is identical to the previous script)
+# We must use the 'species_count_matrix' with UNIQUE row names
+# (e.g., "czech_republic_F1")
+
+message("Calculating Bray-Curtis dissimilarity matrix...")
+bray_dissim_matrix <- vegan::vegdist(species_count_matrix, method = "bray")
+
+message("Running hierarchical clustering (hclust)...")
+h_cluster <- hclust(bray_dissim_matrix, method = "average")
+
+# -----------------------------------------------------------------
+# 3. Extract Data for ggplot
+# -----------------------------------------------------------------
+message("Extracting dendrogram data for ggplot...")
+
+# ggdendro::dendro_data() converts the hclust object into
+# a list of data frames that ggplot can use.
+dendro_data <- ggdendro::dendro_data(h_cluster, type = "rectangle")
+
+# -----------------------------------------------------------------
+# 4. Augment Label Data with 'partner' Info
+# -----------------------------------------------------------------
+# We need to add the 'partner' column to the labels data frame
+# so we can use it for the 'color' aesthetic.
+
+# A) Create the lookup table from our unique filtered data
+partner_lookup <- data_filtered_unique %>%
+  dplyr::select(partner_deployment, partner) %>%
+  dplyr::distinct()
+
+# B) Get the label data frame from the ggdendro object
+label_data <- dendro_data$labels
+
+# C) Join the partner info.
+# The 'label' column in 'label_data' contains our 'partner_deployment' ID
+label_data <- label_data %>%
+  dplyr::left_join(partner_lookup, by = c("label" = "partner_deployment"))
+
+# -----------------------------------------------------------------
+# 5. Build the ggplot
+# -----------------------------------------------------------------
+message("Building ggplot dendrogram...")
+
+dendro_plot <- ggplot2::ggplot() +
+  
+  # Plot the segments (the tree branches)
+  # ggdendro::segment() is a helper to get the segment data
+  ggplot2::geom_segment(
+    data = ggdendro::segment(dendro_data),
+    ggplot2::aes(x = x, y = y, xend = xend, yend = yend)
+  ) +
+  
+  # Plot the labels (the text)
+  # We use our *augmented* 'label_data' here
+  ggplot2::geom_text(
+    data = label_data,
+    ggplot2::aes(x = x, y = y, label = label, color = partner),
+    hjust = 0, # Justify text to the left (starts at the tip)
+    size = 2.5 # Adjust size as needed
+  ) +
+  
+  # Flip to a horizontal dendrogram
+  ggplot2::coord_flip() +
+  
+  # Reverse the y-axis (which is now the x-axis)
+  # This makes the tree read from left to right
+  # We add 'expand' to give the text labels room
+  ggplot2::scale_y_reverse(expand = c(0.2, 0)) +
+  
+  # Add labels
+  ggplot2::labs(
+    title = "Species Composition Similarity by Deployment",
+    x = "", # The deployments are the labels, so no axis text needed
+    y = "Bray-Curtis Dissimilarity",
+    color = "Partner" # This sets the legend title
+  ) +
+  
+  # Clean up the theme (minimal is a good start)
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    # Remove the y-axis text, ticks, and gridlines (they are redundant)
+    axis.text.y = ggplot2::element_blank(),
+    axis.ticks.y = ggplot2::element_blank(),
+    panel.grid.major.y = ggplot2::element_blank(),
+    panel.grid.minor.y = ggplot2::element_blank()
+  )
+
+# -----------------------------------------------------------------
+# 6. Save and Print the Plot
+# -----------------------------------------------------------------
+
+# Print the plot to the RStudio viewer
+print(dendro_plot)
+
+# Save the plot
+ggplot2::ggsave(
+  "Outputs/Figures/dendrogram_ggplot.png",
+  dendro_plot,
+  width = 12, # May need to be wide to fit labels
+  height = 9,
+  bg = "white"
+)
 
 # -----------------------------------------------------------------#
 # Phenology Analysis with Effort Control (GAM) ----
