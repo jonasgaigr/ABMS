@@ -536,35 +536,6 @@ rarefied_df <- data.frame(
 message("Richness rarefied to an effort of ", min_sample_size, " detections.")
 print(head(rarefied_df))
 
-# You must install 'iNEXT' if you haven't already
-# install.packages("iNEXT")
-library(iNEXT)
-
-# Run iNEXT: Estimates diversity (q=0 for richness) based on standardized effort
-# iNEXT uses the count matrix directly.
-iNEXT_output <- iNEXT::iNEXT(
-  x = species_count_matrix,
-  q = 0,               # q=0 is Species Richness (the number of unique species)
-  datatype = "abundance" # The input data is counts/abundances
-)
-
-iNEXT_output_quick <- iNEXT::iNEXT(
-  x = species_count_matrix, # Use your original large matrix
-  q = 0,
-  datatype = "abundance",
-  nboot = 10     # Reduced bootstrap repetitions
-)
-
-# Visualize the resulting diversity curves
-# This plot will show how species richness changes as sampling effort (number of detections) increases,
-# allowing you to see if you have adequately sampled each site.
-iNEXT::ggiNEXT(iNEXT_output) +
-  ggplot2::labs(
-    title = "Rarefaction and Extrapolation Curve (Species Richness)",
-    x = "Number of Detections (Standardized Effort)",
-    y = "Species Richness (q=0)"
-  )
-
 # Use the same 'species_count_matrix' created above.
 
 # Standardize by total site detections (Standardization Method 'total')
