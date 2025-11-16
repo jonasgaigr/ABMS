@@ -282,7 +282,6 @@ acoustic_data <-
 
 # Clean up the temporary zip file
 file.remove(temp_zip_path)
-file.remove(acoustic_data_raw)
 
 # Show the first few rows of your new data frame
 print(head(acoustic_data))
