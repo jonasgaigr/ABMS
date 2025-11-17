@@ -846,7 +846,7 @@ message("Fitting GAM model...")
 # k = number of "knots" or "basis functions".
 # k=20 is a good start for seasonal data (it allows ~19 "wiggles").
 pheno_model <- mgcv::gam(
-  total_detections ~ s(doy, bs = "cc", k = 20),
+  total_detections ~ s(doy, bs = "tp", k = 20),
   data = phenology_data,
   family = "poisson", # We are modeling count data
   offset = log(effort_for_offset) # This controls for effort!
@@ -977,21 +977,9 @@ message(paste("Season End (10%):   DOY", season_end$doy))
 ## 0. Setup & Configuration ----
 # -----------------------------------------------------------------#
 
-# (ASSUMPTION: 'data_filtered' is your main data)
-# (ASSUMPTION: 'top_species_names' is your global list, which we won't use)
-
-# --- CRITICAL ASSUMPTION ---
-# This script assumes your 'data_filtered' object now has a real 'date' column.
-# The fake date simulation block has been REMOVED.
-#
-# Your data MUST look like this:
-# sourcefileid | partner | deployment | ... | species | ... | date (Date)
-#
-# ---------------------------#
+# (Load libraries: dplyr, lubridate, mgcv, ggplot2, tidyr, readr)
 
 # --- Placeholder: Create recording_metadata from data_filtered ---
-# This still assumes 'data_filtered' contains ALL files (even w/ 0 detections)
-# If not, you must load your REAL metadata log here.
 recording_metadata <- data_filtered %>%
   dplyr::distinct(sourcefileid, partner, deployment, year, starttime, endtime, date) %>%
   dplyr::mutate(
@@ -999,21 +987,34 @@ recording_metadata <- data_filtered %>%
   )
 
 # --- Loop Configuration ---
-n_top_species <- 10 # Get top 10 species per partner
+n_top_species <- 10
 partners_list <- unique(data_filtered$partner)
 
-# --- NEW: Get Overall Top Species ---
+# --- Get Overall Top Species ---
 message(paste("--- Finding", n_top_species, "OVERALL top species... ---"))
 overall_top_species_list <- data_filtered %>%
   dplyr::count(species, sort = TRUE) %>%
   dplyr::slice_head(n = n_top_species) %>%
   dplyr::pull(species)
-
 message("...Overall top species found:")
 print(overall_top_species_list)
 
-# Create an empty list to store the results from each loop
+# --- Get Global DOY Range for Consistent VISUALIZATION ---
+message("--- Finding Global DOY Range for consistent plot axes... ---")
+global_doy_range <- recording_metadata %>%
+  dplyr::mutate(doy = lubridate::yday(date)) %>%
+  dplyr::summarise(
+    min_doy = min(doy, na.rm = TRUE),
+    max_doy = max(doy, na.rm = TRUE)
+  )
+global_min_doy <- global_doy_range$min_doy
+global_max_doy <- global_doy_range$max_doy
+global_max_doy <- 280
+message(paste("... Global DOY range set from", global_min_doy, "to", global_max_doy))
+
+# --- Create empty lists to store results ---
 all_phenology_results <- list()
+all_prediction_data_list <- list()
 
 # -----------------------------------------------------------------#
 ## 1. Start Outer Loop (Partners) ----
@@ -1024,15 +1025,14 @@ for (current_partner in partners_list) {
   
   message(paste("\n--- Processing Partner:", current_partner, "---"))
   
-  # 1a. Find the top N species *for this partner*
+  # 1a. Find top N species for this partner
   partner_top_species_list <- data_filtered %>%
     dplyr::filter(partner == current_partner) %>%
     dplyr::count(species, sort = TRUE) %>%
     dplyr::slice_head(n = n_top_species) %>%
-    dplyr::pull(species) # Get species names as a vector
+    dplyr::pull(species)
   
-  # 1b. (NEW) Combine partner list with overall list
-  # We use union() to get a single, unique list of species to process
+  # 1b. Combine partner list with overall list
   species_to_process <- union(partner_top_species_list, overall_top_species_list)
   
   message(paste(
@@ -1040,29 +1040,26 @@ for (current_partner in partners_list) {
     "Total unique species to process (w/ overall list):", length(species_to_process)
   ))
   
-  # 1c. Filter the recording metadata *once* for this partner
+  # 1c. Filter metadata for this partner
   partner_metadata <- recording_metadata %>%
     dplyr::filter(partner == current_partner)
   
   if (nrow(partner_metadata) == 0) {
     message("... Skipping: No recording metadata found for this partner.")
-    next # Skip to the next partner
+    next
   }
   
   # -----------------------------------------------------------------#
   ## 2. Start Inner Loop (Species) ----
   # -----------------------------------------------------------------#
   
-  # (MODIFIED) This now loops over the combined 'species_to_process' list
   for (current_species in species_to_process) {
-    
-    # ... (The rest of your script from here down is unchanged) ...
     
     message(paste("... Processing Species:", current_species))
     
     tryCatch({
       
-      # 2a. Filter detections for the current partner AND species
+      # 2a. Filter detections
       species_detections <- data_filtered %>%
         dplyr::filter(
           partner == current_partner,
@@ -1071,14 +1068,14 @@ for (current_partner in partners_list) {
       
       if (nrow(species_detections) == 0) {
         message("... ... Skipping: No detections found for this species.")
-        next # Skip to the next species
+        next
       }
       
       # -----------------------------------------------------------------#
       ## 3. Prepare Data for Modeling (per partner/species) ----
       # -----------------------------------------------------------------#
       
-      # A) Calculate TOTAL RECORDING EFFORT per day (for this partner)
+      # A) Calculate TOTAL RECORDING EFFORT per day
       effort_by_day <- partner_metadata %>%
         dplyr::group_by(date) %>%
         dplyr::summarise(
@@ -1086,7 +1083,7 @@ for (current_partner in partners_list) {
         ) %>%
         dplyr::mutate(doy = lubridate::yday(date))
       
-      # B) Calculate TOTAL DETECTIONS per day (for this species)
+      # B) Calculate TOTAL DETECTIONS per day
       detections_by_day <- species_detections %>%
         dplyr::group_by(date) %>%
         dplyr::summarise(
@@ -1094,7 +1091,6 @@ for (current_partner in partners_list) {
         )
       
       # C) Combine effort and detections
-      # Create a full calendar based on the partner's *actual* recording period
       date_range <- seq(min(effort_by_day$date), max(effort_by_day$date), by = "day")
       
       phenology_data <- data.frame(date = date_range) %>%
@@ -1110,7 +1106,6 @@ for (current_partner in partners_list) {
           effort_for_offset = total_effort_hours + 0.001
         )
       
-      # Check if we have enough data points to model
       if (nrow(phenology_data) < 15) {
         message("... ... Skipping: Not enough recording days (<15) to fit a model.")
         next
@@ -1120,8 +1115,7 @@ for (current_partner in partners_list) {
       ## 4. Run the GAM (The Phenology Indicator) ----
       # -----------------------------------------------------------------#
       
-      # Dynamically set 'k' (knots) to be less than the number of unique days
-      # 'k' must be at least 3
+      # 'k' is based on the unique days *in the local data*
       k_val <- min(20, length(unique(phenology_data$doy)) - 1)
       
       if (k_val < 3) {
@@ -1129,20 +1123,25 @@ for (current_partner in partners_list) {
         next
       }
       
+      # The model is fit *only* to the local phenology_data
       pheno_model <- mgcv::gam(
-        total_detections ~ s(doy, bs = "cc", k = k_val),
+        total_detections ~ s(doy, bs = "tp", k = k_val),
         data = phenology_data,
         family = "poisson",
         offset = log(effort_for_offset)
       )
       
       # -----------------------------------------------------------------#
-      ## 5. Create & Save Plot ----
+      ## 5. Create & Save Plot (*** MODIFIED ***) ----
       # -----------------------------------------------------------------#
       
-      doy_sequence <- seq(min(phenology_data$doy), max(phenology_data$doy), by = 1)
+      # --- MODIFICATION 1 ---
+      # Create the prediction sequence based *only* on the local data
+      # that was fed into the model.
+      local_doy_sequence <- seq(min(phenology_data$doy), max(phenology_data$doy), by = 1)
+      
       prediction_data <- data.frame(
-        doy = doy_sequence,
+        doy = local_doy_sequence,
         effort_for_offset = 1
       )
       
@@ -1155,9 +1154,10 @@ for (current_partner in partners_list) {
       
       prediction_data <- prediction_data %>%
         dplyr::mutate(
-          predicted_rate = exp(predictions$fit),
-          se_high = exp(predictions$fit + 2 * predictions$se.fit),
-          se_low = exp(predictions$fit - 2 * predictions$se.fit)
+          # --- FIX APPLIED HERE: Use as.numeric() ---
+          predicted_rate = as.numeric(exp(predictions$fit)),
+          se_high = as.numeric(exp(predictions$fit + 2 * predictions$se.fit)),
+          se_low = as.numeric(exp(predictions$fit - 2 * predictions$se.fit))
         )
       
       # Create plot
@@ -1184,10 +1184,16 @@ for (current_partner in partners_list) {
           x = "Day of Year (DOY)",
           y = "Predicted Detections / Hour"
         ) +
-        ggplot2::theme_minimal()
+        ggplot2::theme_minimal() +
+        
+        # --- MODIFICATION 2 ---
+        # Force the plot's X-AXIS to the GLOBAL range for visualization
+        # The data being plotted is still local, but the "window" is global.
+        ggplot2::coord_cartesian(xlim = c(global_min_doy, global_max_doy))
+      
       
       # Create a clean filename
-      clean_species_name <- gsub("[^a-zA-Z0-9_]", "-", current_species) # Clean non-alphanumeric
+      clean_species_name <- gsub("[^a-zA-Z0-9_]", "-", current_species)
       plot_filename <- paste0(
         "Outputs/Figures/Phenology/phenology_",
         current_partner,
@@ -1202,12 +1208,13 @@ for (current_partner in partners_list) {
         phenology_plot,
         width = 10,
         height = 6,
-        bg = "white" # Good for saving PNGs
+        bg = "white"
       )
       
       # -----------------------------------------------------------------#
       ## 6. Extract & Store Metrics ----
       # -----------------------------------------------------------------#
+      # (This section is now correct, as 'prediction_data' is local)
       
       peak_rate_value <- max(prediction_data$predicted_rate, na.rm = TRUE)
       
@@ -1220,7 +1227,6 @@ for (current_partner in partners_list) {
       season_dates <- prediction_data %>%
         dplyr::filter(predicted_rate >= season_threshold_value)
       
-      # Handle cases where the season never starts/ends (e.g., flat line)
       if (nrow(season_dates) == 0) {
         season_onset_doy <- NA
         season_end_doy <- NA
@@ -1244,10 +1250,20 @@ for (current_partner in partners_list) {
       # Add this row to our big results list
       all_phenology_results[[length(all_phenology_results) + 1]] <- result_row
       
+      # --- Store the plot data (now correctly local) ---
+      prediction_data_to_save <- prediction_data %>%
+        dplyr::mutate(
+          partner = current_partner,
+          species = current_species
+        )
+      
+      # Add this data frame to our big list
+      all_prediction_data_list[[length(all_prediction_data_list) + 1]] <- prediction_data_to_save
+      
+      
       message("... ... Success. Plot saved and metrics recorded.")
       
     }, error = function(e) {
-      # This function runs if an error occurs *anywhere* inside the tryCatch
       message(paste("... ... ERROR for", current_species, ":", e$message))
     }) # End of tryCatch
     
@@ -1268,5 +1284,17 @@ readr::write_csv(
   final_phenology_summary,
   "Outputs/Results/phenology_summary_all.csv"
 )
+message("All results saved to Outputs/Results/phenology_summary_all.csv")
 
-message("All results saved to Outputs/phenology_summary_all.csv")
+# --- Compile and save all plot data ---
+message("Compiling and saving all plot data points...")
+final_plot_data <- dplyr::bind_rows(all_prediction_data_list)
+readr::write_csv(
+  final_plot_data,
+  "Outputs/Results/phenology_plot_data_all.csv"
+)
+message("All plot data saved to Outputs/Results/phenology_plot_data_all.csv")
+
+# -----------------------------------------------------------------#
+# END SCRIPT ----
+# -----------------------------------------------------------------#
