@@ -27,6 +27,9 @@ data_filtered <- acoustic_data %>%
     ),
     # Convert 'confidence_bin' to a factor to control stacking order
     confidence_bin = factor(confidence_bin, levels = bin_levels)
+  ) %>%
+  dplyr::mutate(
+    habitat = as.character(stringr::str_sub(deployment, 1, 1))
   )
 
 message("Data filtered and binned successfully.")
@@ -328,6 +331,11 @@ for (p in partners) {
 }
 
 message("All partner-specific plots completed.")
+
+# ----------------------------------------------------------------- #
+# Plot 2.4: Top Species by habitat ----
+# ----------------------------------------------------------------- #
+
 
 
 # ----------------------------------------------------------------- #
