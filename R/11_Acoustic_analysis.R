@@ -567,6 +567,24 @@ print(head(rarefied_df))
 # We will NOT use decostand(method = "total") because Bray-Curtis
 # is designed for raw count data.
 
+# Standardize by total site detections (Standardization Method 'total')
+# This converts the raw counts to relative proportions within each site.
+# This controls for the varying *number of total detections* per site.
+standardized_matrix <- vegan::decostand(
+  species_count_matrix,
+  method = "total"
+)
+# Use the same 'species_count_matrix' created above.
+# We will NOT use decostand(method = "total") because Bray-Curtis
+# is designed for raw count data.
+
+# Run NMDS on the standardized data
+nmds_result <- vegan::metaMDS(
+  standardized_matrix,
+  distance = "bray", # Bray-Curtis distance is standard for abundance data
+  k = 2,              # 2 dimensions for easy plotting
+  trymax = 100        # Try up to 100 random starts to find a stable solution
+)
 
 # Extract coordinates and merge with partner/habitat metadata for plotting
 data_scores <- data.frame(vegan::scores(nmds_result, display = "sites")) %>%
@@ -582,12 +600,27 @@ data_scores <- data.frame(vegan::scores(nmds_result, display = "sites")) %>%
       dplyr::distinct(), # Get unique rows
     
     by = "partner_deployment" # Join by the correct, unique ID
+  ) %>%
+  dplyr::mutate(
+    deployment = if_else(
+      str_detect(partner_deployment, "_[WFGO][0-9]+$"),
+      str_extract(partner_deployment, "[WFGO][0-9]+$"),
+      NA_character_
+    ) %>%
+      as.factor(),    # W1, F2, G1 …
+    habitat = if_else(
+      !is.na(deployment),
+      str_sub(deployment, 1, 1),
+      NA_character_
+    ) %>%
+      as.factor()
   )
 
 # Plot the NMDS results (this code is now correct)
 nmds_plot <- ggplot2::ggplot(data_scores, ggplot2::aes(x = NMDS1, y = NMDS2, color = partner)) +
   ggplot2::geom_point(size = 3, alpha = 0.7) +
-  ggplot2::stat_ellipse() + 
+  ggplot2::stat_ellipse(mapping = aes(colour = habitat)) + 
+  #scale_color_viridis_d() +
   ggplot2::labs(
     title = "Compositional Dissimilarity (NMDS)",
     subtitle = "Based on Bray-Curtis dissimilarity on raw counts",
@@ -597,67 +630,14 @@ nmds_plot <- ggplot2::ggplot(data_scores, ggplot2::aes(x = NMDS1, y = NMDS2, col
 
 print(nmds_plot)
 # ggplot2::ggsave("Outputs/Figures/nmds_plot.png", nmds_plot, width = 8, height = 6)
-
 # ----------------------------------------------------------------- #
-# Deployment Similarity Dendrogram ----
-# (Requires 'vegan' and 'dendextend' packages)
-# ----------------------------------------------------------------- #
-
-# ----------------------------------------------------------------- #
-# ----------------------------------------------------------------- #
-# 1. Calculate Dissimilarity Matrix
-# (This uses the *new* matrix created above)
-message("Calculating Bray-Curtis dissimilarity matrix...")
-bray_dissim_matrix <- vegan::vegdist(species_count_matrix, method = "bray")
-
-# 2. Perform Hierarchical Clustering
-message("Running hierarchical clustering (hclust)...")
-h_cluster <- hclust(bray_dissim_matrix, method = "average")
-
-# 3. Create and Color the Dendrogram
-message("Creating and coloring dendrogram...")
-
-# A) Convert to a 'dendextend' object
-dend <- as.dendrogram(h_cluster)
-
-# B) Create a lookup table (partner_deployment -> partner)
-# We use the 'data_filtered_unique' table we created
-label_lookup <- data_filtered_unique %>%
-  dplyr::select(partner_deployment, partner) %>%
-  dplyr::distinct() %>%
-  # This is now safe, as 'partner_deployment' is unique
-  tibble::column_to_rownames(var = "partner_deployment") 
-
-# C) Get the labels in the dendrogram's order
-dend_labels <- labels(dend)
-
-# D) Find the partner group for each label
-partner_groups <- label_lookup[dend_labels, "partner"]
-
-# E) Create a color palette
-unique_partners <- unique(partner_groups)
-n_partners <- length(unique_partners)
-partner_colors <- scales::hue_pal()(n_partners)
-names(partner_colors) <- unique_partners
-
-# F) Map partner names to colors
-label_colors <- partner_colors[partner_groups]
-
-# G) Apply the colors to the dendrogram labels
-dend <- dendextend::set(dend, "labels_col", label_colors)
-
-# H) (Recommended) Make labels smaller
-# The new labels are long, so 0.5 or 0.4 might be needed
-dend <- dendextend::set(dend, "labels_cex", 0.5)
-
-# -----------------------------------------------------------------
-# Deployment Similarity Dendrogram (ggplot2 solution)
+# Deployment Similarity Dendrogram (ggplot2 solution) ----
 # (Requires 'vegan', 'ggdendro', 'ggplot2', 'dplyr')
-# -----------------------------------------------------------------
+# ----------------------------------------------------------------- #
 
-# -----------------------------------------------------------------
-# 1. & 2. Calculate Dissimilarity & Cluster
-# -----------------------------------------------------------------
+# ----------------------------------------------------------------- #
+## 1. & 2. Calculate Dissimilarity & Cluster ----
+# ----------------------------------------------------------------- #
 # (This part is identical to the previous script)
 # We must use the 'species_count_matrix' with UNIQUE row names
 # (e.g., "czech_republic_F1")
@@ -668,18 +648,18 @@ bray_dissim_matrix <- vegan::vegdist(species_count_matrix, method = "bray")
 message("Running hierarchical clustering (hclust)...")
 h_cluster <- hclust(bray_dissim_matrix, method = "average")
 
-# -----------------------------------------------------------------
-# 3. Extract Data for ggplot
-# -----------------------------------------------------------------
+# ----------------------------------------------------------------- #
+## 3. Extract Data for ggplot ----
+# ----------------------------------------------------------------- #
 message("Extracting dendrogram data for ggplot...")
 
 # ggdendro::dendro_data() converts the hclust object into
 # a list of data frames that ggplot can use.
 dendro_data <- ggdendro::dendro_data(h_cluster, type = "rectangle")
 
-# -----------------------------------------------------------------
-# 4. Augment Label Data with 'partner' Info
-# -----------------------------------------------------------------
+# ----------------------------------------------------------------- #
+## 4. Augment Label Data with 'partner' Info ----
+# ----------------------------------------------------------------- #
 # We need to add the 'partner' column to the labels data frame
 # so we can use it for the 'color' aesthetic.
 
@@ -696,9 +676,9 @@ label_data <- dendro_data$labels
 label_data <- label_data %>%
   dplyr::left_join(partner_lookup, by = c("label" = "partner_deployment"))
 
-# -----------------------------------------------------------------
-# 5. Build the ggplot
-# -----------------------------------------------------------------
+# ----------------------------------------------------------------- #
+## 5. Build the ggplot ----
+# ----------------------------------------------------------------- #
 message("Building ggplot dendrogram...")
 
 dendro_plot <- ggplot2::ggplot() +
@@ -745,9 +725,9 @@ dendro_plot <- ggplot2::ggplot() +
     panel.grid.minor.y = ggplot2::element_blank()
   )
 
-# -----------------------------------------------------------------
-# 6. Save and Print the Plot
-# -----------------------------------------------------------------
+# ----------------------------------------------------------------- #
+## 6. Save and Print the Plot ----
+# ----------------------------------------------------------------- #
 
 # Print the plot to the RStudio viewer
 print(dendro_plot)
@@ -801,7 +781,7 @@ recording_metadata <- data_filtered %>%
   )
 
 # -----------------------------------------------------------------#
-# 1. Choose Target Species ----
+## 1. Choose Target Species ----
 # -----------------------------------------------------------------#
 target_species <- top_species_names[1]
 
@@ -811,7 +791,7 @@ species_detections <- data_filtered %>%
   dplyr::filter(species == target_species)
 
 # -----------------------------------------------------------------#
-# 2. Prepare Data for Modeling ----
+## 2. Prepare Data for Modeling ----
 # -----------------------------------------------------------------#
 message("Aggregating effort and detections by day...")
 
@@ -859,7 +839,7 @@ phenology_data <- data.frame(
 
 
 # -----------------------------------------------------------------#
-# 3. Run the GAM (The Phenology Indicator) ----
+## 3. Run the GAM (The Phenology Indicator) ----
 # -----------------------------------------------------------------#
 message("Fitting GAM model...")
 
@@ -879,7 +859,7 @@ pheno_model <- mgcv::gam(
 # print(summary(pheno_model))
 
 # -----------------------------------------------------------------#
-# 4. Plot the Phenology Curve ----
+## 4. Plot the Phenology Curve ----
 # -----------------------------------------------------------------#
 message("Generating phenology plot...")
 
@@ -951,7 +931,7 @@ ggplot2::ggsave(
 
 
 # -----------------------------------------------------------------#
-# 5. Extract Derived Metrics (Peak, Onset, etc.) ----
+## 5. Extract Derived Metrics (Peak, Onset, etc.) ----
 # -----------------------------------------------------------------#
 message("Extracting key phenology dates...")
 
@@ -994,7 +974,7 @@ message(paste("Season End (10%):   DOY", season_end$doy))
 # Phenology Analysis in a Loop ----
 # -----------------------------------------------------------------#
 # -----------------------------------------------------------------#
-# 0. Setup & Configuration ----
+## 0. Setup & Configuration ----
 # -----------------------------------------------------------------#
 
 # (ASSUMPTION: 'data_filtered' is your main data)
@@ -1036,7 +1016,7 @@ print(overall_top_species_list)
 all_phenology_results <- list()
 
 # -----------------------------------------------------------------#
-# 1. Start Outer Loop (Partners) ----
+## 1. Start Outer Loop (Partners) ----
 # -----------------------------------------------------------------#
 message(paste("--- Starting Phenology Loop for", length(partners_list), "Partners ---"))
 
@@ -1070,7 +1050,7 @@ for (current_partner in partners_list) {
   }
   
   # -----------------------------------------------------------------#
-  # 2. Start Inner Loop (Species) ----
+  ## 2. Start Inner Loop (Species) ----
   # -----------------------------------------------------------------#
   
   # (MODIFIED) This now loops over the combined 'species_to_process' list
@@ -1095,7 +1075,7 @@ for (current_partner in partners_list) {
       }
       
       # -----------------------------------------------------------------#
-      # 3. Prepare Data for Modeling (per partner/species) ----
+      ## 3. Prepare Data for Modeling (per partner/species) ----
       # -----------------------------------------------------------------#
       
       # A) Calculate TOTAL RECORDING EFFORT per day (for this partner)
@@ -1137,7 +1117,7 @@ for (current_partner in partners_list) {
       }
       
       # -----------------------------------------------------------------#
-      # 4. Run the GAM (The Phenology Indicator) ----
+      ## 4. Run the GAM (The Phenology Indicator) ----
       # -----------------------------------------------------------------#
       
       # Dynamically set 'k' (knots) to be less than the number of unique days
@@ -1157,7 +1137,7 @@ for (current_partner in partners_list) {
       )
       
       # -----------------------------------------------------------------#
-      # 5. Create & Save Plot ----
+      ## 5. Create & Save Plot ----
       # -----------------------------------------------------------------#
       
       doy_sequence <- seq(min(phenology_data$doy), max(phenology_data$doy), by = 1)
@@ -1226,7 +1206,7 @@ for (current_partner in partners_list) {
       )
       
       # -----------------------------------------------------------------#
-      # 6. Extract & Store Metrics ----
+      ## 6. Extract & Store Metrics ----
       # -----------------------------------------------------------------#
       
       peak_rate_value <- max(prediction_data$predicted_rate, na.rm = TRUE)
@@ -1276,7 +1256,7 @@ for (current_partner in partners_list) {
 } # End of Outer Loop (Partners)
 
 # -----------------------------------------------------------------#
-# 7. Compile and Save Final CSV ----
+## 7. Compile and Save Final CSV ----
 # -----------------------------------------------------------------#
 message("\n--- Loop Complete. Compiling final results. ---")
 
