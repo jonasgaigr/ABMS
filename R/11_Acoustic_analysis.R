@@ -334,8 +334,148 @@ message("All partner-specific plots completed.")
 # ----------------------------------------------------------------- #
 # Plot 2.4: Top Species by habitat ----
 # ----------------------------------------------------------------- #
+# small helper: generate n shades from very light to base colour
+make_shades <- function(base_col, n) {
+  # gradient from a very light grey to the base colour
+  grDevices::colorRampPalette(c("grey95", base_col))(n)
+}
 
+top_n_species <- 10
+habitats <- c("F","G","W")
+plots <- list()
+legends_grobs <- list()
+habitat_labels <- c(F = "Forest", G = "Grassland", W = "Wetland", O = "Other")
 
+for (h in habitats) {
+  df_h <- data_filtered %>% filter(habitat == h)
+  if (nrow(df_h) == 0) {
+    message("No data for habitat ", h, " — skipping")
+    next
+  }
+  
+  habitat_name <- habitat_labels[h]
+  if (is.na(habitat_name)) habitat_name <- h
+  
+  # top species within habitat
+  top_species_names <- df_h %>%
+    count(species, sort = TRUE) %>%
+    slice_head(n = top_n_species) %>%
+    pull(species)
+  
+  top_species_data <- df_h %>%
+    filter(species %in% top_species_names) %>%
+    count(species, confidence_bin, name = "n") %>%
+    group_by(species) %>%
+    mutate(total = sum(n)) %>%
+    ungroup() %>%
+    mutate(species = fct_reorder(species, total, .fun = sum))
+  
+  # robust extraction + ascending ordering of confidence bins
+  bin_levels <- top_species_data %>%
+    distinct(confidence_bin) %>%
+    pull(confidence_bin) %>%
+    as.character() %>%
+    na.omit() %>%
+    unique() %>%
+    tibble(bin = .) %>%
+    mutate(
+      # extract a numeric lower bound: e.g. "0.70 - 0.85" -> 0.70, "> 0.95" -> 0.95
+      lower = case_when(
+        str_detect(bin, "^>\\s*[0-9.]") ~ as.numeric(str_replace(bin, "^>\\s*", "")),
+        str_detect(bin, "^[0-9.]") ~ as.numeric(str_extract(bin, "^[0-9.]+")),
+        TRUE ~ NA_real_
+      )
+    ) %>%
+    arrange(lower) %>%      # ascending: low -> high
+    pull(bin)
+  
+  if (length(bin_levels) == 0) {
+    message("No confidence bins for habitat ", h, " — skipping")
+    next
+  }
+  
+  # create shades for this habitat (darkest = base colour -> map to the highest-confidence bin)
+  shades <- make_shades(okabe_ito[h], length(bin_levels))
+  names(shades) <- bin_levels  # map names to bin values
+  
+  p <- ggplot(top_species_data, aes(x = species, y = n, fill = confidence_bin)) +
+    geom_col() +
+    coord_flip(expand = FALSE) +
+    scale_fill_manual(values = shades, na.value = "grey60", drop = FALSE) +
+    labs(
+      title = paste0("Top ", top_n_species, " Species — ", habitat_name),
+      subtitle = paste0("Confidence >= ", confidence_threshold),
+      x = "Species",
+      y = "Detections",
+      fill = "Confidence bin"
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      axis.text.y = element_text(face = "italic", size = 8),
+      axis.title.x = element_text(size = 11, face = "bold"),
+      axis.title.y = element_text(size = 11, face = "bold"),
+      plot.title = element_text(face = "bold", size = 14, color = okabe_ito[h]),
+      plot.subtitle = element_text(size = 10),
+      plot.margin = margin(6, 6, 6, 6),
+      legend.position = "bottom",
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 8),
+      legend.key.width = unit(0.9, "cm")
+    )
+  
+  # store plot
+  plots[[h]] <- p
+  
+  # extract legend grob for this plot (we'll arrange these under the combined plot)
+  legends_grobs[[h]] <- get_legend(p + theme(legend.position = "bottom",
+                                             legend.direction = "vertical",
+                                             legend.key.size = unit(0.6, "lines")))
+}
+
+# remove legends from the main plots (we'll add the legends row below)
+plots_no_legend <- lapply(plots, function(pp) pp + theme(legend.position = "none"))
+
+# combine the three panels in a single row using cowplot::plot_grid
+# ensure order F, G, W
+plot_row <- plot_grid(
+  plots_no_legend[["F"]],
+  plots_no_legend[["G"]],
+  plots_no_legend[["W"]],
+  ncol = 3,
+  align = "hv",
+  rel_widths = c(1,1,1)
+)
+
+# now create a single legend row by placing each legend grob side by side
+# convert grobs to ggdraw objects for consistent plotting
+legend_plots <- lapply(legends_grobs, function(g) {
+  if (is.null(g)) return(NULL)
+  ggdraw(g)
+})
+
+# keep only non-null legends and align them
+legend_plots <- legend_plots[!vapply(legend_plots, is.null, logical(1))]
+
+if (length(legend_plots) == 0) {
+  # no legends found — just save the plot_row
+  final_plot <- plot_row
+} else {
+  legend_row <- plot_grid(plotlist = legend_plots, ncol = length(legend_plots), rel_widths = rep(1, length(legend_plots)))
+  # stack the main row and the legend row
+  final_plot <- plot_grid(plot_row, legend_row, ncol = 1, rel_heights = c(1, 0.18))
+}
+
+# save final figure
+ggsave(
+  filename = "Outputs/Figures/2_4_top_species_by_habitat_shaded.png",
+  plot = final_plot,
+  width = 20,
+  height = 9,
+  dpi = 300,
+  units = "in"
+)
+
+message("Saved combined habitat plot with per-habitat confidence-shaded bars and legends underneath.")
 
 # ----------------------------------------------------------------- #
 # Plot 3: Detections per Recording (on *filtered* data) ----
