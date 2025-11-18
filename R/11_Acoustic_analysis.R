@@ -106,7 +106,6 @@ ggplot2::ggsave(
   height = 5
 )
 
-
 # ----------------------------------------------------------------- #
 # Plot 2.1: Top Species ----
 # ----------------------------------------------------------------- #
@@ -989,9 +988,12 @@ season_filtered_data <- data_filtered %>%
 # A. Identify Countries with > 120 recording days
 # We count distinct dates per country to ensure they have a wide enough timeline.
 valid_countries <- season_filtered_data %>%
-  group_by(partner) %>%
+  group_by(partner, habitat) %>%
   summarise(recording_days = n_distinct(date)) %>%
-  filter(recording_days > 120) %>%  # The Constraint
+  filter(recording_days >= 105) %>%  # The Constraint
+  group_by(partner) %>%
+  summarise(valid_habitat = n_distinct(habitat)) %>%
+  filter(valid_habitat >= 2) %>%
   pull(partner)
 
 print(paste("Countries included:", paste(valid_countries, collapse = ", ")))
@@ -1060,6 +1062,149 @@ print(phenology_plot)
 
 # --- 4. EXPORT TO A4 PORTRAIT ---
 ggsave("Outputs/Figures/phenology_facet.png", plot = phenology_plot, width = 210, height = 297, units = "mm")
+
+# Grouped GAM Phenology ----
+# A. Filter Date Window & Habitats
+seasonal_data <- data_filtered %>%
+  dplyr::filter(format(date, "%m-%d") >= "03-15" & format(date, "%m-%d") <= "09-30") %>%
+  dplyr::filter(habitat %in% c("F", "G", "W"))
+
+# B. Calculate EFFORT (Duration in Hours)
+# This calculation remains unchanged as it counts all recording duration
+effort_by_day <- seasonal_data %>% 
+  dplyr::distinct(sourcefileid, partner, habitat, starttime, endtime, date) %>%
+  dplyr::mutate(duration_hours = (endtime - starttime) / 3600) %>%
+  dplyr::group_by(partner, habitat, date) %>%
+  dplyr::summarise(total_effort_hours = sum(duration_hours, na.rm = TRUE), .groups = "drop")
+
+# C. Calculate DETECTIONS (FIX: Total Community Count)
+detections_by_day <- seasonal_data %>%
+  # *** NO SPECIES FILTER HERE ***
+  dplyr::group_by(partner, habitat, date) %>%
+  dplyr::summarise(
+    total_detections = dplyr::n(), # Counts ALL rows/detections
+    .groups = "drop"
+  )
+
+# D. COMBINE Effort and Detections
+model_input_data <- effort_by_day %>%
+  dplyr::left_join(detections_by_day, by = c("partner", "habitat", "date")) %>%
+  dplyr::mutate(
+    total_detections = tidyr::replace_na(total_detections, 0),
+    doy = lubridate::yday(date),
+    effort_for_offset = total_effort_hours + 0.001
+  ) %>%
+  dplyr::filter(total_effort_hours > 0) # This removes the true "gaps" to be interpolated
+
+# -----------------------------------------------------------------#
+# 3. FILTER COUNTRIES (The "N" Rows Logic)
+# -----------------------------------------------------------------#
+
+# Identify Valid Countries (>120 days with recording effort in this window)
+valid_countries <- model_input_data %>%
+  dplyr::group_by(partner) %>%
+  dplyr::summarise(n_days = dplyr::n_distinct(date)) %>%
+  dplyr::filter(n_days > 120) %>%
+  dplyr::pull(partner)
+
+message("Countries included: ", paste(valid_countries, collapse = ", "))
+
+# Filter the dataset for modeling
+final_modeling_data <- model_input_data %>%
+  dplyr::filter(partner %in% valid_countries)
+
+# -----------------------------------------------------------------#
+# 4. ITERATIVE GAM MODELING
+# -----------------------------------------------------------------#
+
+fit_gam_phenology <- function(df) {
+  
+  # Safety check: Skip if data is too sparse for k=20
+  if(nrow(df) < 25) return(NULL)
+  
+  tryCatch({
+    # 1. Fit the Model (Your Code)
+    m <- mgcv::gam(
+      total_detections ~ s(doy, bs = "tp", k = 20),
+      data = df,
+      family = "poisson",
+      offset = log(effort_for_offset) # Controls for your calculated hours
+    )
+    
+    # 2. Predict for Standardized Effort
+    # We predict for the full window (Mar 15 - Sept 30) roughly DOY 74-273
+    pred_grid <- data.frame(
+      doy = seq(min(df$doy), max(df$doy), length.out = 100),
+      effort_for_offset = 1 # Standardize to 1 hour!
+    )
+    
+    preds <- predict(m, newdata = pred_grid, type = "link", se.fit = TRUE)
+    
+    # 3. Return formatted results
+    pred_grid %>%
+      mutate(
+        fit_link = preds$fit,
+        se_link = preds$se.fit,
+        predicted_count = exp(fit_link),
+        lower_ci = exp(fit_link - 1.96 * se_link),
+        upper_ci = exp(fit_link + 1.96 * se_link),
+        date = as.Date(doy, origin = paste0(year(Sys.Date()), "-01-01")) # Dummy year for plotting
+      )
+  }, error = function(e) return(NULL))
+}
+
+message("Fitting GAMs... (This accounts for recording duration)")
+
+# Map over every Country/Habitat combination
+plot_predictions <- final_modeling_data %>%
+  group_by(partner, habitat) %>%
+  nest() %>%
+  mutate(gam_preds = map(data, fit_gam_phenology)) %>%
+  select(-data) %>%
+  unnest(gam_preds)
+
+# -----------------------------------------------------------------#
+# 5. VISUALIZATION
+# -----------------------------------------------------------------#
+
+phenology_plot <- ggplot(plot_predictions, aes(x = date, y = predicted_count)) +
+  
+  # Ribbons (CI)
+  geom_ribbon(aes(fill = habitat, ymin = lower_ci, ymax = upper_ci), alpha = 0.3) +
+  
+  # Trend Lines
+  geom_line(aes(color = habitat), linewidth = 1) +
+  
+  # Styles
+  scale_color_manual(values = okabe_ito) +
+  scale_fill_manual(values = okabe_ito) +
+  scale_x_date(date_labels = "%b", date_breaks = "2 months") + 
+  
+  # Facet Grid
+  facet_grid(
+    rows = vars(partner), 
+    cols = vars(habitat), 
+    scales = "free_y",
+    labeller = labeller(habitat = habitat_labeller)
+  ) +
+  
+  theme_bw() +
+  labs(
+    title = "Modeled Bird Activity (March 15 - Sept 30)",
+    subtitle = "GAM (Poisson) accounting for variable recording hours",
+    y = "Standardized Activity Index (per hour)",
+    x = NULL
+  ) +
+  theme(
+    strip.background = element_rect(fill = "#f0f0f0"),
+    strip.text = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  )
+
+print(phenology_plot)
+
+ggsave("phenology_gam_duration_corrected.png", plot = phenology_plot, width = 210, height = 297, units = "mm")
 
 # -----------------------------------------------------------------#
 # Phenology Analysis in a Loop ----
