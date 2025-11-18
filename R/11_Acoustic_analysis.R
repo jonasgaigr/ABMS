@@ -937,7 +937,6 @@ ggplot2::ggsave(
 )
 # print(phenology_plot)
 
-
 # -----------------------------------------------------------------#
 ## 5. Extract Derived Metrics (Peak, Onset, etc.) ----
 # -----------------------------------------------------------------#
@@ -977,6 +976,90 @@ message(paste(
 ))
 message(paste("Season Onset (10%): DOY", season_onset$doy))
 message(paste("Season End (10%):   DOY", season_end$doy))
+
+# -----------------------------------------------------------------#
+# Grouped Phenology ----
+# -----------------------------------------------------------------#
+
+# format(date, "%m-%d") converts dates to "03-15", "09-30", etc.
+# This allows us to filter the window regardless of the year (2020, 2021, etc.)
+season_filtered_data <- data_filtered %>%
+  filter(format(date, "%m-%d") >= "03-15" & format(date, "%m-%d") <= "09-30")
+
+# A. Identify Countries with > 120 recording days
+# We count distinct dates per country to ensure they have a wide enough timeline.
+valid_countries <- season_filtered_data %>%
+  group_by(partner) %>%
+  summarise(recording_days = n_distinct(date)) %>%
+  filter(recording_days > 120) %>%  # The Constraint
+  pull(partner)
+
+print(paste("Countries included:", paste(valid_countries, collapse = ", ")))
+
+# B. Filter the main dataset
+# We keep only valid countries AND only the specific habitats requested (F, G, W)
+plot_data <- season_filtered_data %>%
+  filter(partner %in% valid_countries) %>%
+  filter(habitat %in% c("F", "G", "W")) %>%
+  dplyr::group_by(partner, habitat, date) %>%
+  dplyr::reframe(
+    total_detections = n()
+  )
+
+# --- 3. THE VISUALIZATION (FACET GRID) ---
+
+# Define a "Labeller" to convert codes to names in the plot headers
+habitat_labeller <- c(
+  "F" = "Forest",
+  "G" = "Grassland",
+  "W" = "Wetland"
+)
+
+phenology_plot <- ggplot(plot_data, aes(x = date, y = total_detections)) +
+  
+  # Apply Color and Fill based on Habitat
+  # We set alpha (transparency) for the fill so the ribbon isn't too solid
+  geom_smooth(
+    aes(color = habitat, fill = habitat), 
+    method = "loess", 
+    span = 0.3, 
+    se = TRUE, 
+    alpha = 0.3
+  ) +
+  
+  # Apply the Okabe-Ito Palette
+  scale_color_manual(values = okabe_ito) +
+  scale_fill_manual(values = okabe_ito) +
+  
+  # Facet Grid with Labeller
+  # We pass the 'habitat_labeller' to rename F/G/W to Forest/Grassland/Wetland headers
+  facet_grid(
+    rows = vars(partner), 
+    cols = vars(habitat), 
+    scales = "free_y",
+    labeller = labeller(habitat = habitat_labeller) 
+  ) +
+  
+  # Formatting
+  theme_bw() +
+  labs(
+    title = "Relative Bird Activity (March 15 - Sept 30)",
+    y = "Relative Activity Index",
+    x = "Date"
+  ) +
+  theme(
+    strip.background = element_rect(fill = "#f0f0f0"),
+    strip.text = element_text(face = "bold", size = 10),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.minor = element_blank(),
+    legend.position = "none" # Remove legend since headers explain the colors
+  )
+
+# Display the plot
+print(phenology_plot)
+
+# --- 4. EXPORT TO A4 PORTRAIT ---
+ggsave("Outputs/Figures/phenology_facet.png", plot = phenology_plot, width = 210, height = 297, units = "mm")
 
 # -----------------------------------------------------------------#
 # Phenology Analysis in a Loop ----
