@@ -1511,9 +1511,7 @@ for (current_partner in partners_list) {
       ## 5. Create & Save Plot (*** MODIFIED ***) ----
       # -----------------------------------------------------------------#
       
-      # --- MODIFICATION 1 ---
       # Create the prediction sequence based *only* on the local data
-      # that was fed into the model.
       local_doy_sequence <- seq(min(phenology_data$doy), max(phenology_data$doy), by = 1)
       
       prediction_data <- data.frame(
@@ -1528,13 +1526,24 @@ for (current_partner in partners_list) {
         se.fit = TRUE
       )
       
+      # Remember to use as.numeric() to ensure bind_rows() works later!
       prediction_data <- prediction_data %>%
         dplyr::mutate(
-          # --- FIX APPLIED HERE: Use as.numeric() ---
           predicted_rate = as.numeric(exp(predictions$fit)),
           se_high = as.numeric(exp(predictions$fit + 2 * predictions$se.fit)),
           se_low = as.numeric(exp(predictions$fit - 2 * predictions$se.fit))
         )
+      
+      # --- NEW: CALCULATE MAX Y-AXIS VALUE ---
+      # The maximum Y should be the greater of:
+      # 1. The highest raw data point (Rate)
+      # 2. The highest point of the predicted upper confidence interval (se_high)
+      max_raw_rate <- max(phenology_data$total_detections / phenology_data$effort_for_offset, na.rm = TRUE)
+      max_ci_rate <- max(prediction_data$se_high, na.rm = TRUE)
+      
+      # We use 'max' to find the true ceiling, then add a small buffer (1.1x)
+      max_y_value <- max(max_raw_rate, max_ci_rate) * 1.1
+      
       
       # Create plot
       phenology_plot <- ggplot2::ggplot(prediction_data, ggplot2::aes(x = doy)) +
@@ -1562,9 +1571,10 @@ for (current_partner in partners_list) {
         ) +
         ggplot2::theme_minimal() +
         
-        # --- MODIFICATION 2 ---
+        # --- Apply the enforced Y-Axis limit ---
+        ggplot2::ylim(c(0, max_y_value)) +
+        
         # Force the plot's X-AXIS to the GLOBAL range for visualization
-        # The data being plotted is still local, but the "window" is global.
         ggplot2::coord_cartesian(xlim = c(global_min_doy, global_max_doy))
       
       
