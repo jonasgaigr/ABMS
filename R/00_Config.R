@@ -25,6 +25,7 @@ packages <- c(
   "ggspatial",
   "rnaturalearth",
   "rnaturalearthdata",
+  "scatterpie",
   "MASS",
   "DHARMa",
   "patchwork",
