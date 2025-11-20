@@ -8,21 +8,44 @@
 # Define your confidence threshold
 confidence_threshold <- 0.7
 
+spec_thresholds <- thresholds %>%
+  dplyr::mutate(
+    spec_threshold = dplyr::case_when(
+      F_090 < F_095 ~ Threshold_095,
+      F_090 > F_095 ~ Threshold_090
+      )
+  ) %>%
+  dplyr::mutate(
+    spec_threshold = dplyr::case_when(
+      is.na(spec_threshold) == TRUE ~ confidence_threshold,
+      spec_threshold > 1 ~ confidence_threshold,
+      spec_threshold < 0.5 ~ 0.5,
+      spec_threshold > 0.9 ~ 0.9,
+      TRUE ~ spec_threshold
+    )
+  ) %>%
+  dplyr::select(Species, spec_threshold)
+
 # Create a filtered data frame. This will be the basis for most analysis.
 # We keep only rows with confidence >= the threshold.
 message("Filtering data and creating confidence bins...")
 
 # Define the order of bins for the plot legend
 # We do this so "> 0.95" appears on top, not alphabetically
-bin_levels <- c("> 0.95", "0.85 - 0.95", "0.70 - 0.85")
+bin_levels <- c("> 0.9", "0.7 - 0.9", "0.5 - 0.7")
 
 # Create a filtered data frame with an added 'confidence_bin' column
 data_filtered <- acoustic_data %>%
-  dplyr::filter(confidence >= confidence_threshold) %>%
+  dplyr::left_join(
+    .,
+    spec_thresholds,
+    by = c("species_name" = "Species")
+    ) %>%
+  dplyr::filter(confidence >= spec_threshold) %>%
   dplyr::mutate(
     confidence_bin = dplyr::case_when(
-      confidence >= 0.95 ~ bin_levels[1],
-      confidence >= 0.85 ~ bin_levels[2],
+      confidence >= 0.9 ~ bin_levels[1],
+      confidence >= 0.7 ~ bin_levels[2],
       TRUE ~ bin_levels[3] # All remaining (0.70 - 0.849...)
     ),
     # Convert 'confidence_bin' to a factor to control stacking order
