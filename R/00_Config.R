@@ -49,7 +49,7 @@ for (pkg in packages) {
 #--------------------------------------------------#
 locations <- readr::read_csv(
   "Data/Inputs/locations_20251105.csv",
-)  %>%
+) %>%
   dplyr::mutate(
     type_code = str_sub(code, 1, 1),
     site_type = dplyr::case_when(
@@ -203,7 +203,7 @@ gdrive_file_id <- "1fSjoRQjQ9Ub03eSpKgcLiMZ5A1y9wwaO"
 temp_zip_path <- tempfile(fileext = ".zip")
 
 # ----------------------------------------------------------------- #
-# 1. Download the file from Google Drive ----
+## 1. Download the file from Google Drive ----
 # ----------------------------------------------------------------- #
 
 # Tell googledrive not to use a logged-in user.
@@ -219,7 +219,7 @@ drive_download(
 message("Download complete: ", temp_zip_path)
 
 # ----------------------------------------------------------------- #
-# 2. Find the CSV file *inside* the zip ----
+## 2. Find the CSV file *inside* the zip ----
 # ----------------------------------------------------------------- #
 
 # Get a list of all files inside the zip archive
@@ -239,7 +239,7 @@ if (length(csv_file_name) == 0) {
 }
 
 # ----------------------------------------------------------------- #
-# 3. Read the CSV directly from the zip ----
+## 3. Read the CSV directly from the zip ----
 # ----------------------------------------------------------------- #
 
 # Use the unz() function to create a connection to the file
@@ -280,7 +280,7 @@ acoustic_data <-
   ) 
 
 # ----------------------------------------------------------------- #
-# 4. Success! ----
+## 4. Success! ----
 # ----------------------------------------------------------------- #
 
 # Clean up the temporary zip file
@@ -291,3 +291,12 @@ print(head(acoustic_data))
 
 # Your data is now in the 'data' data frame
 
+# ----------------------------------------------------------------- #
+## Load acoustic threshold data ----
+# ----------------------------------------------------------------- #
+thresholds <- readr::read_csv(
+  "Data/Inputs/thresholds_ABMS.csv",
+) %>%
+  dplyr::mutate(
+    Species = str_replace_all(Species, " ", "_")
+  )
