@@ -181,7 +181,7 @@ target_countries <- c("Ireland", "Spain", "Croatia", "Bulgaria", "Czechia",
 
 # Okabe-Ito colourblind-friendly palette (works for up to 8 categories)
 okabe_ito <- setNames(
-  c("#009E73", "#E69F00","#0072B2", "#D55E00"),
+  c("#009E73","#E69F00", "#56B4E9", "#D55E00"),
   c("F", "G", "W", "O")
 )
 
