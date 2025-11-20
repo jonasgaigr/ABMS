@@ -1,0 +1,143 @@
+engname;latname;0.90_Threshold;0.95_Threshold;0.99_Threshold;McFaddenR2;samplesize;Precision
+Alpine Swift;Apus_melba;-892849428571441.000;-916879357199528.000;-969964179199686.000;0.000;27.000;0.000
+American Pipit;Anthus_rubescens;-461397641391092.000;-473815583360921.000;-501248217443163.000;0.000;27.000;0.000
+Barn Owl;Tyto_alba;1.619;1.777;2.128;0.153;54.000;0.093
+Barn Swallow;Hirundo_rustica;0.723;-0.669;-3.744;0.003;108.000;0.907
+Bearded Reedling;Panurus_biarmicus;1.281;1.561;2.178;0.085;27.000;0.556
+Black Redstart;Phoenicurus_ochruros;8.310;9.937;13.531;0.002;54.000;0.204
+Black Woodpecker;Dryocopus_martius;0.703;0.862;1.214;0.191;81.000;0.753
+Black-crowned Night-Heron;Nycticorax_nycticorax;2.153;2.498;3.260;0.049;108.000;0.231
+Black-headed Gull;Chroicocephalus_ridibundus;1.381;1.560;1.955;0.152;27.000;0.259
+Boreal Owl;Aegolius_funereus;-1708834128774740.000;-1754825267748080.000;-1856424879788990.000;0.000;26.000;0.000
+Brambling;Fringilla_montifringilla;1.039;1.172;1.466;0.266;54.000;0.407
+Brant;Branta_bernicla;7.187;8.093;10.094;0.005;27.000;0.037
+Canada Goose;Branta_canadensis;0.753;0.907;1.248;0.212;27.000;0.704
+Carrion Crow;Corvus_corone;0.388;0.477;0.675;0.317;27.000;0.889
+Cetti's Warbler;Cettia_cetti;0.636;0.746;0.989;0.328;54.000;0.722
+Coal Tit;Periparus_ater;0.647;0.831;1.237;0.137;27.000;0.815
+Collared Flycatcher;Ficedula_albicollis;-650733122482810.000;-668246792748818.000;-706936465241387.000;0.000;27.000;0.000
+Common Buzzard;Buteo_buteo;1.191;1.514;2.227;0.057;108.000;0.657
+Common Chaffinch;Fringilla_coelebs;0.437;0.674;1.198;0.078;108.000;0.907
+Common Chiffchaff;Phylloscopus_collybita;0.214;0.267;0.385;0.355;108.000;0.963
+Common Crane;Grus_grus;3.501;4.233;5.850;0.012;81.000;0.309
+Common Cuckoo;Cuculus_canorus;0.412;0.542;0.829;0.204;81.000;0.901
+Common Firecrest;Regulus_ignicapilla;0.536;0.844;1.527;0.053;27.000;0.889
+Common Grasshopper-Warbler;Locustella_naevia;6.293;8.012;11.810;0.002;54.000;0.426
+Common Greenshank;Tringa_nebularia;0.987;1.153;1.521;0.188;54.000;0.537
+Common House-Martin;Delichon_urbicum;0.639;1.065;2.007;0.029;81.000;0.877
+Common Kingfisher;Alcedo_atthis;1.939;2.491;3.709;0.022;54.000;0.574
+Common Nightingale;Luscinia_megarhynchos;0.764;0.867;1.094;0.343;27.000;0.593
+Common Quail;Coturnix_coturnix;2.465;2.789;3.506;0.048;54.000;0.111
+Common Raven;Corvus_corax;0.477;0.593;0.850;0.237;108.000;0.861
+Common Redstart;Phoenicurus_phoenicurus;1017935642403580.000;1044379630213770.000;1102797381161110.000;0.000;81.000;0.000
+Common Rosefinch;Carpodacus_erythrinus;-731465960393301.000;-751152454285388.000;-794642139179717.000;0.000;27.000;0.000
+Common Sandpiper;Actitis_hypoleucos;0.993;0.993;0.994;1.000;27.000;0.074
+Common Scoter;Melanitta_nigra;527093820842333.000;541279893532565.000;572618527753979.000;0.000;27.000;0.000
+Common Snipe;Gallinago_gallinago;0.589;0.750;1.106;0.174;81.000;0.827
+Common Swift;Apus_apus;0.855;0.941;1.131;0.433;54.000;0.444
+Common Wood-Pigeon;Columba_palumbus;0.701;0.915;1.388;0.113;81.000;0.802
+Crested Tit;Lophophanes_cristatus;0.868;1.107;1.637;0.100;27.000;0.741
+Dunlin;Calidris_alpina;1.565;1.748;2.152;0.136;54.000;0.167
+Dunnock;Prunella_modularis;0.449;0.593;0.913;0.179;54.000;0.889
+Egyptian Goose;Alopochen_aegyptiaca;0.803;1.008;1.461;0.121;27.000;0.741
+Eurasian Blackbird;Turdus_merula;0.451;0.633;1.037;0.121;108.000;0.898
+Eurasian Blackcap;Sylvia_atricapilla;0.608;0.916;1.598;0.052;108.000;0.870
+Eurasian Blue Tit;Cyanistes_caeruleus;0.363;0.482;0.745;0.211;117.000;0.915
+Eurasian Bullfinch;Pyrrhula_pyrrhula;2.870;3.336;4.364;0.026;54.000;0.185
+Eurasian Collared-Dove;Streptopelia_decaocto;-8.101;-9.281;-11.889;0.003;27.000;0.037
+Eurasian Coot;Fulica_atra;1.567;1.813;2.355;0.100;54.000;0.315
+Eurasian Curlew;Numenius_arquata;1.374;1.542;1.914;0.164;54.000;0.241
+Eurasian Eagle-Owl;Bubo_bubo;1.614;1.763;2.094;0.147;54.000;0.074
+Eurasian Golden Oriole;Oriolus_oriolus;1.323;1.473;1.805;0.202;27.000;0.222
+Eurasian Green Woodpecker;Picus_viridis;1.081;1.397;2.093;0.063;108.000;0.704
+Eurasian Jackdaw;Corvus_monedula;0.464;0.558;0.765;0.330;81.000;0.840
+Eurasian Jay;Garrulus_glandarius;0.530;0.725;1.154;0.119;108.000;0.870
+Eurasian Kestrel;Falco_tinnunculus;0.449;0.597;0.924;0.178;27.000;0.889
+Eurasian Linnet;Linaria_cannabina;0.420;0.623;1.070;0.105;54.000;0.907
+Eurasian Magpie;Pica_pica;0.640;0.815;1.203;0.148;81.000;0.815
+Eurasian Marsh-Harrier;Circus_aeruginosus;0.680;0.900;1.386;0.105;27.000;0.815
+Eurasian Moorhen;Gallinula_chloropus;0.773;0.882;1.122;0.344;27.000;0.593
+Eurasian Nightjar;Caprimulgus_europaeus;1.162;1.215;1.333;0.407;54.000;0.056
+Eurasian Nutcracker;Nucifraga_caryocatactes;-183.592;-246.212;-384.549;0.000;54.000;0.500
+Eurasian Nuthatch;Sitta_europaea;0.126;0.135;0.157;0.565;108.000;0.991
+Eurasian Oystercatcher;Haematopus_ostralegus;0.970;1.062;1.265;0.394;27.000;0.333
+Eurasian Penduline-Tit;Remiz_pendulinus;0.123;0.123;0.124;1.000;27.000;0.926
+Eurasian Scops-Owl;Otus_scops;8.156;9.699;13.109;0.003;27.000;0.185
+Eurasian Siskin;Spinus_spinus;0.869;1.013;1.329;0.247;54.000;0.593
+Eurasian Skylark;Alauda_arvensis;0.292;0.355;0.494;0.385;54.000;0.926
+Eurasian Sparrowhawk;Accipiter_nisus;0.334;0.383;0.491;0.498;27.000;0.889
+Eurasian Tree Sparrow;Passer_montanus;0.735;0.509;0.012;0.082;27.000;0.926
+Eurasian Treecreeper;Certhia_familiaris;0.208;-2.025;-6.959;0.001;108.000;0.889
+Eurasian Wigeon;Mareca_penelope;1.573;1.965;2.831;0.039;27.000;0.556
+Eurasian Woodcock;Scolopax_rusticola;2.230;2.532;3.197;0.057;108.000;0.139
+Eurasian Wren;Troglodytes_troglodytes;0.432;0.702;1.299;0.060;135.000;0.911
+European Bee-eater;Merops_apiaster;-2.103;-0.994;1.455;0.003;54.000;0.981
+European Golden-Plover;Pluvialis_apricaria;1.031;1.103;1.264;0.460;27.000;0.222
+European Goldfinch;Carduelis_carduelis;0.709;0.987;1.601;0.067;108.000;0.833
+European Greenfinch;Chloris_chloris;2.280;3.143;5.050;0.009;27.000;0.667
+European Honey-buzzard;Pernis_apivorus;0.980;1.214;1.730;0.111;54.000;0.667
+European Pied Flycatcher;Ficedula_hypoleuca;1.935;2.425;3.507;0.029;81.000;0.519
+European Robin;Erithacus_rubecula;0.633;0.802;1.176;0.157;135.000;0.807
+European Stonechat;Saxicola_rubicola;0.837;0.943;1.176;0.365;27.000;0.519
+Gadwall;Mareca_strepera;1.129;1.200;1.356;0.398;54.000;0.130
+Goldcrest;Regulus_regulus;0.660;0.837;1.226;0.152;108.000;0.796
+Gray Heron;Ardea_cinerea;1.160;1.314;1.656;0.213;135.000;0.370
+Gray Partridge;Perdix_perdix;1.504;1.697;2.124;0.132;27.000;0.222
+Gray Wagtail;Motacilla_cinerea;1.616;1.877;2.455;0.088;81.000;0.321
+Gray-headed Woodpecker;Picus_canus;0.582;0.791;1.254;0.114;27.000;0.852
+Graylag Goose;Anser_anser;0.835;1.006;1.385;0.179;81.000;0.679
+Great Bittern;Botaurus_stellaris;3.026;3.376;4.149;0.033;81.000;0.049
+Great Spotted Woodpecker;Dendrocopos_major;0.467;0.572;0.803;0.292;108.000;0.852
+Great Tit;Parus_major;0.498;0.785;1.418;0.054;96.000;0.896
+Greater White-fronted Goose;Anser_albifrons;0.913;1.020;1.256;0.359;27.000;0.444
+Greater Whitethroat;Curruca_communis;0.727;0.905;1.299;0.161;54.000;0.759
+Green Sandpiper;Tringa_ochropus;1.194;1.360;1.726;0.194;81.000;0.370
+Green-winged Teal;Anas_crecca;1.359;1.590;2.101;0.113;54.000;0.407
+Hawfinch;Coccothraustes_coccothraustes;2.576;2.959;3.804;0.038;108.000;0.157
+Hooded Crow;Corvus_cornix;3688650358.359;3570706458.727;3310155084.858;0.000;27.000;1.000
+Lesser Spotted Woodpecker;Dryobates_minor;1.488;1.728;2.258;0.104;81.000;0.346
+Little Bittern;Ixobrychus_minutus;2.902;3.340;4.308;0.028;108.000;0.148
+Little Grebe;Tachybaptus_ruficollis;-1658344125553150.000;-1702976389071090.000;-1801574092001640.000;0.000;27.000;0.000
+Little Owl;Athene_noctua;1.476;1.617;1.928;0.181;135.000;0.111
+Little Ringed Plover;Charadrius_dubius;0.990;1.022;1.091;0.581;27.000;0.111
+Long-eared Owl;Asio_otus;1.210;1.276;1.421;0.333;54.000;0.056
+Long-tailed Tit;Aegithalos_caudatus;0.789;1.038;1.589;0.088;108.000;0.787
+Mallard;Anas_platyrhynchos;1.097;1.309;1.776;0.126;108.000;0.556
+Marsh Tit;Poecile_palustris;0.846;1.170;1.887;0.055;81.000;0.802
+Meadow Pipit;Anthus_pratensis;0.543;1.265;2.860;0.010;108.000;0.898
+Middle Spotted Woodpecker;Dendrocoptes_medius;1.579;1.905;2.626;0.061;54.000;0.463
+Mistle Thrush;Turdus_viscivorus;0.747;1.011;1.594;0.078;54.000;0.815
+Mute Swan;Cygnus_olor;0.319;0.394;0.559;0.326;27.000;0.926
+Northern Goshawk;Accipiter_gentilis;1.108;1.169;1.306;0.439;27.000;0.111
+Northern Lapwing;Vanellus_vanellus;0.755;0.884;1.170;0.268;27.000;0.667
+Ortolan Bunting;Emberiza_hortulana;-1345158168228320.000;-1381361422373570.000;-1461338493128610.000;0.000;27.000;0.000
+Red-backed Shrike;Lanius_collurio;0.095;1.073;3.232;0.005;27.000;0.926
+Red-billed Chough;Pyrrhocorax_pyrrhocorax;-863379623195010.000;-886616408772075.000;-937949088336201.000;0.000;27.000;0.000
+Red-breasted Flycatcher;Ficedula_parva;122.247;161.016;246.660;0.000;54.000;0.463
+Red-throated Pipit;Anthus_cervinus;0.909;1.105;1.540;0.140;27.000;0.667
+Redwing;Turdus_iliacus;2.062;2.368;3.045;0.061;135.000;0.200
+Reed Bunting;Emberiza_schoeniclus;0.771;0.977;1.431;0.122;81.000;0.765
+Ring-necked Pheasant;Phasianus_colchicus;0.518;0.718;1.160;0.113;81.000;0.877
+River Warbler;Locustella_fluviatilis;1032349809567230.000;1060134216936810.000;1121513105839110.000;0.000;27.000;0.000
+Rock Bunting;Emberiza_cia;0.006;-0.584;-1.887;0.016;27.000;0.815
+Rook;Corvus_frugilegus;1.587;1.960;2.785;0.047;108.000;0.528
+Savi's Warbler;Locustella_luscinioides;-2264052138254170.000;-2324986277372750.000;-2459596661735770.000;0.000;27.000;0.000
+Sedge Warbler;Acrocephalus_schoenobaenus;0.198;0.247;0.353;0.397;27.000;0.963
+Short-toed Treecreeper;Certhia_brachydactyla;0.686;0.822;1.122;0.238;108.000;0.731
+Song Thrush;Turdus_philomelos;0.965;1.202;1.723;0.103;81.000;0.679
+Spotted Crake;Porzana_porzana;1700120994963790.000;1745877630809380.000;1846959198998080.000;0.000;27.000;0.000
+Spotted Flycatcher;Muscicapa_striata;1.490;1.909;2.835;0.036;108.000;0.620
+Stock Dove;Columba_oenas;1.836;2.163;2.887;0.055;54.000;0.333
+Tawny Owl;Strix_aluco;1.866;2.236;3.053;0.048;135.000;0.393
+Tawny Pipit;Anthus_campestris;-646401499538463.000;-663798589576197.000;-702230723198702.000;0.000;27.000;0.000
+Tree Pipit;Anthus_trivialis;1.347;1.543;1.977;0.143;108.000;0.333
+Ural Owl;Strix_uralensis;1637194093805720.000;1681257130601770.000;1778597347516550.000;0.000;27.000;0.000
+Water Pipit;Anthus_spinoletta;-27908861558.858;-27016480973.140;-25045111632.746;0.000;27.000;1.000
+Water Rail;Rallus_aquaticus;1.149;1.333;1.740;0.161;108.000;0.454
+Western Yellow Wagtail;Motacilla_flava;0.400;0.500;0.721;0.267;27.000;0.889
+Whimbrel;Numenius_phaeopus;0.867;0.905;0.988;0.680;27.000;0.259
+Whinchat;Saxicola_rubetra;1.268;1.547;2.163;0.073;27.000;0.556
+White Wagtail;Motacilla_alba;0.688;0.803;1.056;0.296;81.000;0.691
+Whooper Swan;Cygnus_cygnus;2.791;3.334;4.536;0.021;54.000;0.296
+Willow Warbler;Phylloscopus_trochilus;0.719;0.863;1.181;0.226;54.000;0.722
+Wood Warbler;Phylloscopus_sibilatrix;0.801;0.817;0.854;0.872;27.000;0.296
