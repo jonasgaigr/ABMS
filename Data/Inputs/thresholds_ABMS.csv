@@ -1,87 +1,87 @@
-Species,Samplesize,Countries,Original_precision,Threshold_050,Threshold_090,Threshold_095,recall_90,recall_95,Performance,NOTES,F_090
-Sitta europaea,108,4,0.991,0.097,0.126,0.135,0.585,0.451,0,,0.709090909
-Merops apiaster,54,2,0.981,0,0,0,1,1,0,,0.947368421
-Phylloscopus collybita,108,4,0.963,0.057,0.214,0.267,0.659,0.506,0,,0.760872354
-Alauda arvensis,54,2,0.926,0.107,0.292,0.355,0.538,0.455,0,,0.673435327
-Cyanistes caeruleus,117,4,0.915,0.013,0.363,0.482,0.673,0.579,0,Calls rarely confused with Parus major,0.770120788
-Troglodytes troglodytes,135,5,0.911,0,0.432,0.702,0.738,0.699,0,,0.810989011
-Fringilla coelebs,108,4,0.907,0,0.437,0.674,0.82,0.809,0,,0.858139535
-Linaria cannabina,54,2,0.907,0,0.42,0.623,0.981,0.981,0,,0.938755981
-Cuculus canorus,81,3,0.901,0.029,0.412,0.542,0.633,0.52,0,,0.743248532
-Turdus merula,108,4,0.898,0,0.451,0.633,0.904,0.897,0,,0.901995565
-Parus major,96,4,0.896,0,0.498,0.785,0.685,0.628,0,Calls rarely confused with Cyanistes caeruleus,0.777917981
-Certhia familiaris,108,4,0.889,0,0.208,0,0.865,0.881,0,,0.882152975
-Prunella modularis,54,2,0.889,0.023,0.449,0.593,0.619,0.538,0,,0.733508887
-Phasianus colchicus,81,3,0.877,0,0.518,0.718,0.671,0.619,0,,0.768809675
-Sylvia atricapilla,108,4,0.87,0,0.608,0.916,0.645,0.582,0,Only calls detected,0.751456311
-Garrulus glandarius,108,4,0.87,0,0.53,0.725,0.691,0.656,0,,0.78177247
-Corvus corax,108,4,0.861,0.135,0.477,0.593,0.459,0.33,0,Occasionally mistaken with foxes ,0.60794702
-Dendrocopos major,108,4,0.852,0.159,0.467,0.572,0.443,0.333,0,,0.593745346
-Corvus monedula,81,3,0.84,0.189,0.464,0.558,0.443,0.292,0,,0.593745346
-Carduelis carduelis,108,4,0.833,0,0.709,0.987,0.667,0.61,0,,0.766177409
-Gallinago gallinago,81,3,0.827,0.115,0.589,0.75,0.552,0.412,0,,0.684297521
-Pica pica,81,3,0.815,0.123,0.64,0.815,0.581,0.368,0,,0.706144497
-Erithacus rubecula,135,5,0.807,0.135,0.633,0.802,0.446,0.367,0,,0.596433878
-Columba palumbus,81,3,0.802,0.071,0.701,0.915,0.563,0.466,0,,0.692686261
-Regulus regulus,108,4,0.796,0.142,0.66,0.837,0.439,0.327,0,,0.590141897
-Emberiza schoeniclus,81,3,0.765,0.165,0.771,0.977,0.442,0.273,0,,0.592846498
-Curruca communis,54,2,0.759,0.202,0.727,0.905,0.385,0.226,0,,0.539299611
-Dryocopus martius,81,3,0.753,0.234,0.703,0.862,0.39,0.167,0,,0.544186047
-Certhia brachydactyla,108,4,0.731,0.288,0.686,0.822,0.385,0.184,0,,0.539299611
-Phylloscopus trochilus,54,2,0.722,0.295,0.719,0.863,0.468,0.167,0,,0.615789474
-Cettia cetti,54,2,0.722,0.313,0.636,0.746,0.375,0.25,0,,0.529411765
-Motacilla alba,81,3,0.691,0.352,0.688,0.803,0.29,0.022,0,,0.438655462
-Apus apus,54,2,0.444,0.603,0.855,0.941,0.356,0,0,,0.510191083
-Hirundo rustica,108,4,0.907,0,0.723,NA,0.316,0,1,,0.467763158
-Anthus pratensis,108,4,0.898,0,0.543,NA,0.505,0,1,,0.646975089
-Delichon urbicum,81,3,0.877,0,0.639,NA,0.423,0,1,,0.575510204
-Turdus viscivorus,54,2,0.815,0,0.747,NA,0.364,0,1,,0.51835443
-Poecile palustris,81,3,0.802,0,0.846,NA,0.318,0,1,,0.469950739
-Aegithalos caudatus,108,4,0.787,0.055,0.789,NA,0.273,0,1,,0.418925831
-Turdus philomelos,81,3,0.679,0.271,0.965,NA,0.169,0,1,,0.284565014
-Anser anser,81,3,0.679,0.33,0.835,NA,0.018,0,1,,0.035294118
-Pernis apivorus,54,2,0.667,0.293,0.98,NA,0.344,0,1,,0.497749196
-Spinus spinus,54,2,0.593,0.448,0.869,NA,0.056,0,1,,0.105439331
-Tringa nebularia,54,2,0.537,0.497,0.987,NA,0,0,1,,0
-Picus viridis,108,4,0.704,0.155,NA,NA,0,0,2,,0
-Buteo buteo,108,4,0.657,0.242,NA,NA,0,0,2,Mimicked by Jay,0
-Muscicapa striata,108,4,0.62,0.257,NA,NA,0,0,2,,0
-Alcedo atthis,54,2,0.574,0.318,NA,NA,0,0,2,,0
-Anas platyrhynchos,108,4,0.556,0.475,NA,NA,0,0,2,,0
-Corvus frugilegus,108,4,0.528,0.489,NA,NA,0,0,2,Confusion with other crow species,0
-Ficedula hypoleuca,81,3,0.519,0.495,NA,NA,0,0,2,,0
-Nucifraga caryocatactes,54,2,0.5,0.548,NA,NA,0,0,2,,0
-Dendrocoptes medius,54,2,0.463,0.62,NA,NA,0,0,2,Confusion with Dendrocopos major,0
-Rallus aquaticus,108,4,0.454,0.607,NA,NA,0,0,2,,0
-Anas crecca,54,2,0.407,0.678,NA,NA,0,0,2,Dog often mistaken for this,0
-Fringilla montifringilla,54,2,0.407,0.648,NA,NA,0,0,2,,0
-Strix aluco,135,5,0.393,0.778,NA,NA,0,0,2,,0
-Tringa ochropus,81,3,0.37,0.707,NA,NA,0,0,2,Confusion with Parus major,0
-Ardea cinerea,135,5,0.37,0.705,NA,NA,0,0,2,,0
-Dryobates minor,81,3,0.346,0.783,NA,NA,0,0,2,,0
-Anthus trivialis,108,4,0.333,0.769,NA,NA,0,0,2,,0
-Columba oenas,54,2,0.333,0.872,NA,NA,0,0,2,,0
-Motacilla cinerea,81,3,0.321,0.847,NA,NA,0,0,2,,0
-Fulica atra,54,2,0.315,0.846,NA,NA,0,0,2,,0
-Numenius arquata,54,2,0.241,0.879,NA,NA,0,0,2,,0
-Mareca strepera,54,2,0.13,0.922,NA,NA,0,0,2,,0
-Ficedula parva,54,2,0.463,NA,NA,NA,0,0,3,,0
-Locustella naevia,54,2,0.426,NA,NA,NA,0,0,3,Very often mistaken with Orthoptera,0
-Grus grus,81,3,0.309,NA,NA,NA,0,0,3,Red deer mistaken for this,0
-Cygnus cygnus,54,2,0.296,NA,NA,NA,0,0,3,,0
-Nycticorax nycticorax,108,4,0.231,NA,NA,NA,0,0,3,Mistaken with frog calls,0
-Phoenicurus ochruros,54,2,0.204,NA,NA,NA,0,0,3,Mainly calls,0
-Turdus iliacus,135,5,0.2,NA,NA,NA,0,0,3,Similar to Turdus merula,0
-Pyrrhula pyrrhula,54,2,0.185,NA,NA,NA,0,0,3,Mistaken with Anas crecca,0
-Calidris alpina,54,2,0.167,NA,NA,NA,0,0,3,,0
-Coccothraustes coccothraustes,108,4,0.157,NA,NA,NA,0,0,3,Mostly Erithacus rubecula,0
-Ixobrychus minutus,108,4,0.148,NA,NA,NA,0,0,3,,0
-Scolopax rusticola,108,4,0.139,NA,NA,NA,0,0,3,Sometimes confusion with small mammals  as rodents ,0
-Athene noctua,135,5,0.111,NA,NA,NA,0,0,3,"Cats, dogs and foxes mistaken for this",0
-Coturnix coturnix,54,2,0.111,NA,NA,NA,0,0,3,,0
-Tyto alba,54,2,0.093,NA,NA,NA,0,0,3,,0
-Bubo bubo,54,2,0.074,NA,NA,NA,0,0,3,Red deer mistaken for this,0
-Caprimulgus europaeus,54,2,0.056,NA,NA,NA,0,0,3,Orthoptera mistaken for this,0
-Asio otus,54,2,0.056,NA,NA,NA,0,0,3,Red deer or cattle mistaken for this,0
-Botaurus stellaris,81,3,0.049,NA,NA,NA,0,0,3,,0
-Phoenicurus phoenicurus,81,3,0,NA,NA,NA,0,0,3,Mostly confused with Phylloscopus collybita calls,0
+Species,Samplesize,Countries,Original_precision,Threshold_050,Threshold_090,Threshold_095,recall_90,recall_95,Performance,NOTES,F_090,F_095
+Sitta europaea,108,4,0.991,0.097,0.126,0.135,0.585,0.451,0,,0.709090909,0.611634547
+Merops apiaster,54,2,0.981,0,0,0,1,1,0,,0.947368421,0.974358974
+Phylloscopus collybita,108,4,0.963,0.057,0.214,0.267,0.659,0.506,0,,0.760872354,0.660302198
+Alauda arvensis,54,2,0.926,0.107,0.292,0.355,0.538,0.455,0,,0.673435327,0.615302491
+Cyanistes caeruleus,117,4,0.915,0.013,0.363,0.482,0.673,0.579,0,Calls rarely confused with Parus major,0.770120788,0.719489863
+Troglodytes troglodytes,135,5,0.911,0,0.432,0.702,0.738,0.699,0,,0.810989011,0.80539721
+Fringilla coelebs,108,4,0.907,0,0.437,0.674,0.82,0.809,0,,0.858139535,0.873848778
+Linaria cannabina,54,2,0.907,0,0.42,0.623,0.981,0.981,0,,0.938755981,0.965251165
+Cuculus canorus,81,3,0.901,0.029,0.412,0.542,0.633,0.52,0,,0.743248532,0.672108844
+Turdus merula,108,4,0.898,0,0.451,0.633,0.904,0.897,0,,0.901995565,0.922739578
+Parus major,96,4,0.896,0,0.498,0.785,0.685,0.628,0,Calls rarely confused with Cyanistes caeruleus,0.777917981,0.756147022
+Certhia familiaris,108,4,0.889,0,0.208,0,0.865,0.881,0,,0.882152975,0.914199891
+Prunella modularis,54,2,0.889,0.023,0.449,0.593,0.619,0.538,0,,0.733508887,0.686962366
+Phasianus colchicus,81,3,0.877,0,0.518,0.718,0.671,0.619,0,,0.768809675,0.749585723
+Sylvia atricapilla,108,4,0.87,0,0.608,0.916,0.645,0.582,0,Only calls detected,0.751456311,0.721801567
+Garrulus glandarius,108,4,0.87,0,0.53,0.725,0.691,0.656,0,,0.78177247,0.776089664
+Corvus corax,108,4,0.861,0.135,0.477,0.593,0.459,0.33,0,Occasionally mistaken with foxes ,0.60794702,0.48984375
+Dendrocopos major,108,4,0.852,0.159,0.467,0.572,0.443,0.333,0,,0.593745346,0.493141076
+Corvus monedula,81,3,0.84,0.189,0.464,0.558,0.443,0.292,0,,0.593745346,0.446698873
+Carduelis carduelis,108,4,0.833,0,0.709,0.987,0.667,0.61,0,,0.766177409,0.742948718
+Gallinago gallinago,81,3,0.827,0.115,0.589,0.75,0.552,0.412,0,,0.684297521,0.574743025
+Pica pica,81,3,0.815,0.123,0.64,0.815,0.581,0.368,0,,0.706144497,0.530500759
+Erithacus rubecula,135,5,0.807,0.135,0.633,0.802,0.446,0.367,0,,0.596433878,0.529460896
+Columba palumbus,81,3,0.802,0.071,0.701,0.915,0.563,0.466,0,,0.692686261,0.625282486
+Regulus regulus,108,4,0.796,0.142,0.66,0.837,0.439,0.327,0,,0.590141897,0.486530932
+Emberiza schoeniclus,81,3,0.765,0.165,0.771,0.977,0.442,0.273,0,,0.592846498,0.424121014
+Curruca communis,54,2,0.759,0.202,0.727,0.905,0.385,0.226,0,,0.539299611,0.365136054
+Dryocopus martius,81,3,0.753,0.234,0.703,0.862,0.39,0.167,0,,0.544186047,0.284064458
+Certhia brachydactyla,108,4,0.731,0.288,0.686,0.822,0.385,0.184,0,,0.539299611,0.308289242
+Phylloscopus trochilus,54,2,0.722,0.295,0.719,0.863,0.468,0.167,0,,0.615789474,0.284064458
+Cettia cetti,54,2,0.722,0.313,0.636,0.746,0.375,0.25,0,,0.529411765,0.395833333
+Motacilla alba,81,3,0.691,0.352,0.688,0.803,0.29,0.022,0,,0.438655462,0.043004115
+Apus apus,54,2,0.444,0.603,0.855,0.941,0.356,0,0,,0.510191083,0
+Hirundo rustica,108,4,0.907,0,0.723,NA,0.316,0,1,,0.467763158,0
+Anthus pratensis,108,4,0.898,0,0.543,NA,0.505,0,1,,0.646975089,0
+Delichon urbicum,81,3,0.877,0,0.639,NA,0.423,0,1,,0.575510204,0
+Turdus viscivorus,54,2,0.815,0,0.747,NA,0.364,0,1,,0.51835443,0
+Poecile palustris,81,3,0.802,0,0.846,NA,0.318,0,1,,0.469950739,0
+Aegithalos caudatus,108,4,0.787,0.055,0.789,NA,0.273,0,1,,0.418925831,0
+Turdus philomelos,81,3,0.679,0.271,0.965,NA,0.169,0,1,,0.284565014,0
+Anser anser,81,3,0.679,0.33,0.835,NA,0.018,0,1,,0.035294118,0
+Pernis apivorus,54,2,0.667,0.293,0.98,NA,0.344,0,1,,0.497749196,0
+Spinus spinus,54,2,0.593,0.448,0.869,NA,0.056,0,1,,0.105439331,0
+Tringa nebularia,54,2,0.537,0.497,0.987,NA,0,0,1,,0,0
+Picus viridis,108,4,0.704,0.155,NA,NA,0,0,2,,0,0
+Buteo buteo,108,4,0.657,0.242,NA,NA,0,0,2,Mimicked by Jay,0,0
+Muscicapa striata,108,4,0.62,0.257,NA,NA,0,0,2,,0,0
+Alcedo atthis,54,2,0.574,0.318,NA,NA,0,0,2,,0,0
+Anas platyrhynchos,108,4,0.556,0.475,NA,NA,0,0,2,,0,0
+Corvus frugilegus,108,4,0.528,0.489,NA,NA,0,0,2,Confusion with other crow species,0,0
+Ficedula hypoleuca,81,3,0.519,0.495,NA,NA,0,0,2,,0,0
+Nucifraga caryocatactes,54,2,0.5,0.548,NA,NA,0,0,2,,0,0
+Dendrocoptes medius,54,2,0.463,0.62,NA,NA,0,0,2,Confusion with Dendrocopos major,0,0
+Rallus aquaticus,108,4,0.454,0.607,NA,NA,0,0,2,,0,0
+Anas crecca,54,2,0.407,0.678,NA,NA,0,0,2,Dog often mistaken for this,0,0
+Fringilla montifringilla,54,2,0.407,0.648,NA,NA,0,0,2,,0,0
+Strix aluco,135,5,0.393,0.778,NA,NA,0,0,2,,0,0
+Tringa ochropus,81,3,0.37,0.707,NA,NA,0,0,2,Confusion with Parus major,0,0
+Ardea cinerea,135,5,0.37,0.705,NA,NA,0,0,2,,0,0
+Dryobates minor,81,3,0.346,0.783,NA,NA,0,0,2,,0,0
+Anthus trivialis,108,4,0.333,0.769,NA,NA,0,0,2,,0,0
+Columba oenas,54,2,0.333,0.872,NA,NA,0,0,2,,0,0
+Motacilla cinerea,81,3,0.321,0.847,NA,NA,0,0,2,,0,0
+Fulica atra,54,2,0.315,0.846,NA,NA,0,0,2,,0,0
+Numenius arquata,54,2,0.241,0.879,NA,NA,0,0,2,,0,0
+Mareca strepera,54,2,0.13,0.922,NA,NA,0,0,2,,0,0
+Ficedula parva,54,2,0.463,NA,NA,NA,0,0,3,,0,0
+Locustella naevia,54,2,0.426,NA,NA,NA,0,0,3,Very often mistaken with Orthoptera,0,0
+Grus grus,81,3,0.309,NA,NA,NA,0,0,3,Red deer mistaken for this,0,0
+Cygnus cygnus,54,2,0.296,NA,NA,NA,0,0,3,,0,0
+Nycticorax nycticorax,108,4,0.231,NA,NA,NA,0,0,3,Mistaken with frog calls,0,0
+Phoenicurus ochruros,54,2,0.204,NA,NA,NA,0,0,3,Mainly calls,0,0
+Turdus iliacus,135,5,0.2,NA,NA,NA,0,0,3,Similar to Turdus merula,0,0
+Pyrrhula pyrrhula,54,2,0.185,NA,NA,NA,0,0,3,Mistaken with Anas crecca,0,0
+Calidris alpina,54,2,0.167,NA,NA,NA,0,0,3,,0,0
+Coccothraustes coccothraustes,108,4,0.157,NA,NA,NA,0,0,3,Mostly Erithacus rubecula,0,0
+Ixobrychus minutus,108,4,0.148,NA,NA,NA,0,0,3,,0,0
+Scolopax rusticola,108,4,0.139,NA,NA,NA,0,0,3,Sometimes confusion with small mammals  as rodents ,0,0
+Athene noctua,135,5,0.111,NA,NA,NA,0,0,3,"Cats, dogs and foxes mistaken for this",0,0
+Coturnix coturnix,54,2,0.111,NA,NA,NA,0,0,3,,0,0
+Tyto alba,54,2,0.093,NA,NA,NA,0,0,3,,0,0
+Bubo bubo,54,2,0.074,NA,NA,NA,0,0,3,Red deer mistaken for this,0,0
+Caprimulgus europaeus,54,2,0.056,NA,NA,NA,0,0,3,Orthoptera mistaken for this,0,0
+Asio otus,54,2,0.056,NA,NA,NA,0,0,3,Red deer or cattle mistaken for this,0,0
+Botaurus stellaris,81,3,0.049,NA,NA,NA,0,0,3,,0,0
+Phoenicurus phoenicurus,81,3,0,NA,NA,NA,0,0,3,Mostly confused with Phylloscopus collybita calls,0,0
