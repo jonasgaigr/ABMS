@@ -299,4 +299,8 @@ thresholds <- readr::read_csv(
 ) %>%
   dplyr::mutate(
     Species = str_replace_all(Species, " ", "_")
-  )
+  ) %>%
+  dplyr::select(
+    Species, Samplesize, Countries,
+    Threshold_090, F_090, Threshold_095, F_095
+    )
