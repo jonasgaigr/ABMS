@@ -1329,7 +1329,7 @@ fit_gam_phenology <- function(df) {
     # We predict for the full window (Mar 15 - Sept 30) roughly DOY 74-273
     pred_grid <- data.frame(
       doy = seq(min(df$doy), max(df$doy), length.out = 100),
-      effort_for_offset = 1 # Standardize to 1 hour!
+      effort_for_offset = 0.2 # Standardize to 1 recording each 5 mins
     )
     
     preds <- predict(m, newdata = pred_grid, type = "link", se.fit = TRUE)
