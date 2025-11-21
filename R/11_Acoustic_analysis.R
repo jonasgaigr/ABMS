@@ -11,8 +11,10 @@ confidence_threshold <- 0.7
 species_thresholds <- thresholds %>%
   dplyr::mutate(
     #spec_threshold = dplyr::case_when(
-    #  F_090 < F_095 ~ Threshold_095,
-    #  F_090 > F_095 ~ Threshold_090
+    #  F_050 > F_095 & F_050 > F_090 & F_050 > F_070 ~ Threshold_050,
+    #  F_070 > F_095 & F_070 > F_090 & F_070 > F_050 ~ Threshold_070,
+    #  F_090 > F_050 & F_090 > F_070 & F_090 > F_095 ~ Threshold_090,
+    #  F_095 > F_050 & F_095 > F_070 & F_095 > F_090 ~ Threshold_095
     #  )
     spec_threshold = Threshold_090
   ) %>%
