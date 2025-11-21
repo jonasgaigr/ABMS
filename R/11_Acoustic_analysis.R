@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------- #
 # Exploratory Data Analysis (EDA) of Acoustic Detections
-
+# ----------------------------------------------------------------- #
 # -----------------------------------------------------------------#
 # Setup & Filtering----
 # -----------------------------------------------------------------#
@@ -8,17 +8,19 @@
 # Define your confidence threshold
 confidence_threshold <- 0.7
 
-spec_thresholds <- thresholds %>%
+species_thresholds <- thresholds %>%
   dplyr::mutate(
-    spec_threshold = dplyr::case_when(
-      F_090 < F_095 ~ Threshold_095,
-      F_090 > F_095 ~ Threshold_090
-      )
+    #spec_threshold = dplyr::case_when(
+    #  F_090 < F_095 ~ Threshold_095,
+    #  F_090 > F_095 ~ Threshold_090
+    #  )
+    spec_threshold = Threshold_090
   ) %>%
   dplyr::mutate(
     spec_threshold = dplyr::case_when(
       is.na(spec_threshold) == TRUE ~ confidence_threshold,
       spec_threshold > 1 ~ confidence_threshold,
+      spec_threshold < 0 ~ confidence_threshold,
       spec_threshold < 0.5 ~ 0.5,
       spec_threshold > 0.9 ~ 0.9,
       TRUE ~ spec_threshold
@@ -38,9 +40,15 @@ bin_levels <- c("> 0.9", "0.7 - 0.9", "0.5 - 0.7")
 data_filtered <- acoustic_data %>%
   dplyr::left_join(
     .,
-    spec_thresholds,
+    species_thresholds,
     by = c("species_name" = "Species")
     ) %>%
+  dplyr::mutate(
+    spec_threshold = dplyr::case_when(
+      is.na(spec_threshold) == FALSE ~ spec_threshold,
+      TRUE ~ 0.7
+    )
+  ) %>%
   dplyr::filter(confidence >= spec_threshold) %>%
   dplyr::mutate(
     confidence_bin = dplyr::case_when(
@@ -169,7 +177,6 @@ top_species_plot <- ggplot2::ggplot(
   ggplot2::scale_fill_brewer(palette = "cool", direction = -1) + # Use a nice color scale
   ggplot2::labs(
     title = paste("Top", top_n_species, "Most Frequent Species"),
-    subtitle = paste("Based on detections with confidence >=", confidence_threshold),
     x = "Species",
     y = "Number of Detections",
     fill = "Confidence Bin" # Legend title
@@ -236,7 +243,6 @@ top_species_plot_rl <- ggplot(top_species_data_rl,
   scale_fill_brewer(palette = "Set2", direction = 1) +
   labs(
     title = paste("Top", top_n_species, "species per Red-List category"),
-    subtitle = paste("Based on detections with confidence >=", confidence_threshold),
     x = "Species",
     y = "Number of detections",
     fill = "Confidence bin"
@@ -326,7 +332,6 @@ for (p in partners) {
     scale_fill_brewer(palette = "Set2") +
     labs(
       title = paste0("Top ", top_n_species, " Species — ", p),
-      subtitle = paste("Based on detections with confidence ≥", confidence_threshold),
       x = "Species",
       y = "Number of Detections",
       fill = "Confidence Bin"
@@ -427,7 +432,6 @@ for (h in habitats) {
     scale_fill_manual(values = shades, na.value = "grey60", drop = FALSE) +
     labs(
       title = paste0("Top ", top_n_species, " Species — ", habitat_name),
-      subtitle = paste0("Confidence >= ", confidence_threshold),
       x = "Species",
       y = "Detections",
       fill = "Confidence bin"
@@ -450,7 +454,7 @@ for (h in habitats) {
   plots[[h]] <- p
   
   # extract legend grob for this plot (we'll arrange these under the combined plot)
-  legends_grobs[[h]] <- get_legend(p + theme(legend.position = "bottom",
+  legends_grobs[[h]] <- cowplot::get_legend(p + theme(legend.position = "bottom",
                                              legend.direction = "vertical",
                                              legend.key.size = unit(0.6, "lines")))
 }
@@ -460,7 +464,7 @@ plots_no_legend <- lapply(plots, function(pp) pp + theme(legend.position = "none
 
 # combine the three panels in a single row using cowplot::plot_grid
 # ensure order F, G, W
-plot_row <- plot_grid(
+plot_row <- cowplot::plot_grid(
   plots_no_legend[["F"]],
   plots_no_legend[["G"]],
   plots_no_legend[["W"]],
@@ -469,23 +473,51 @@ plot_row <- plot_grid(
   rel_widths = c(1,1,1)
 )
 
-# now create a single legend row by placing each legend grob side by side
-# convert grobs to ggdraw objects for consistent plotting
-legend_plots <- lapply(legends_grobs, function(g) {
-  if (is.null(g)) return(NULL)
-  ggdraw(g)
-})
-
-# keep only non-null legends and align them
+# Check for nulls and remove (already done in your code)
 legend_plots <- legend_plots[!vapply(legend_plots, is.null, logical(1))]
 
 if (length(legend_plots) == 0) {
   # no legends found — just save the plot_row
   final_plot <- plot_row
 } else {
-  legend_row <- plot_grid(plotlist = legend_plots, ncol = length(legend_plots), rel_widths = rep(1, length(legend_plots)))
+  # --- FIX 1: Use do.call to pass the list elements as arguments ---
+  # We use the corrected function signature:
+  legend_row <- do.call(
+    cowplot::plot_grid, 
+    c(
+      plotlist = legend_plots, 
+      list(
+        ncol = length(legend_plots), 
+        rel_widths = rep(1, length(legend_plots))
+      )
+    )
+  )
+  
+  # Note: A simpler, more reliable way (if you don't need complex rel_widths) is:
+  # legend_row <- plot_grid(plotlist = legend_plots, ncol = length(legend_plots)) 
+  # Wait, the error suggests even 'plotlist' is unused. The simple fix is:
+  
+  
+  # --- FIX 1 (Revised and simpler): Use do.call directly on the plot list ---
+  legend_row <- do.call(
+    cowplot::plot_grid, 
+    c(
+      legend_plots, 
+      list(
+        ncol = length(legend_plots), 
+        # You may omit rel_widths if they are all equal
+        rel_widths = rep(1, length(legend_plots))
+      )
+    )
+  )
+  
   # stack the main row and the legend row
-  final_plot <- plot_grid(plot_row, legend_row, ncol = 1, rel_heights = c(1, 0.18))
+  final_plot <- cowplot::plot_grid(
+    plot_row, 
+    legend_row, 
+    ncol = 1, 
+    rel_heights = c(1, 0.18)
+  )
 }
 
 # save final figure
@@ -618,7 +650,6 @@ message("Saved: ", paste0(file_site, ".csv"))
 
 message("--- CSV saving complete. ---")
 
-
 # ----------------------------------------------------------------- #
 ## 2. Save all summaries as Word (.docx) Tables ----
 # ----------------------------------------------------------------- #
@@ -635,7 +666,6 @@ flextable::save_as_docx(
 )
 message("Saved: ", paste0(file_sitenational, ".docx"))
 
-
 # --- National ---
 ft_national <- flextable::flextable(deployment_summary_national)
 ft_national <- flextable::autofit(ft_national)
@@ -645,7 +675,6 @@ flextable::save_as_docx(
   path = paste0(file_national, ".docx")
 )
 message("Saved: ", paste0(file_national, ".docx"))
-
 
 # --- Site ---
 ft_site <- flextable::flextable(deployment_summary_site)
@@ -1320,10 +1349,10 @@ message("Fitting GAMs... (This accounts for recording duration)")
 
 # Map over every Country/Habitat combination
 plot_predictions <- final_modeling_data %>%
-  group_by(partner, habitat) %>%
+  dplyr::group_by(partner, habitat) %>%
   nest() %>%
-  mutate(gam_preds = map(data, fit_gam_phenology)) %>%
-  select(-data) %>%
+  dplyr::mutate(gam_preds = map(data, fit_gam_phenology)) %>%
+  dplyr::select(-data) %>%
   unnest(gam_preds)
 
 # -----------------------------------------------------------------#
@@ -1367,7 +1396,7 @@ phenology_plot <- ggplot(plot_predictions, aes(x = date, y = predicted_count)) +
 
 print(phenology_plot)
 
-ggsave("phenology_gam_duration_corrected.png", plot = phenology_plot, width = 210, height = 297, units = "mm")
+#ggsave("phenology_gam_duration_corrected.png", plot = phenology_plot, width = 210, height = 297, units = "mm")
 
 # -----------------------------------------------------------------#
 # Phenology Analysis in a Loop ----
