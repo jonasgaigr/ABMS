@@ -301,3 +301,10 @@ thresholds <- readr::read_csv(
     Species, Samplesize, Countries,
     Threshold_090, F_090, Threshold_095, F_095
     )
+
+# ----------------------------------------------------------------- #
+## Load partner-country link ----
+# ----------------------------------------------------------------- #
+partner_country <- readr::read_csv(
+  "Data/Inputs/partner_country.csv",
+)
