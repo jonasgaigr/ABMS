@@ -297,9 +297,6 @@ print(head(acoustic_data))
 thresholds <- readr::read_csv(
   "Data/Inputs/thresholds_ABMS.csv",
 ) %>%
-  dplyr::mutate(
-    Species = str_replace_all(Species, " ", "_")
-  ) %>%
   dplyr::select(
     Species, Samplesize, Countries,
     Threshold_090, F_090, Threshold_095, F_095
