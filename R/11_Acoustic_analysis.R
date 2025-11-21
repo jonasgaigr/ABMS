@@ -475,6 +475,15 @@ plot_row <- cowplot::plot_grid(
   rel_widths = c(1,1,1)
 )
 
+# now create a single legend row by placing each legend grob side by side
+# convert grobs to ggdraw objects for consistent plotting
+legend_plots <- lapply(legends_grobs, function(g) {
+  if (is.null(g)) return(NULL)
+  cowplot::ggdraw(g)
+})
+
+# keep only non-null legends and align them
+
 # Check for nulls and remove (already done in your code)
 legend_plots <- legend_plots[!vapply(legend_plots, is.null, logical(1))]
 
@@ -818,19 +827,24 @@ data_scores <- data.frame(vegan::scores(nmds_result, display = "sites")) %>%
   )
 
 # Plot the NMDS results (this code is now correct)
-nmds_plot <- ggplot2::ggplot(data_scores, ggplot2::aes(x = NMDS1, y = NMDS2, color = partner)) +
+nmds_plot <- ggplot2::ggplot(data_scores, ggplot2::aes(x = NMDS1, y = NMDS2, color = habitat)) +
   ggplot2::geom_point(size = 3, alpha = 0.7) +
-  ggplot2::stat_ellipse(mapping = aes(colour = habitat)) + 
-  #scale_color_viridis_d() +
+  ggplot2::stat_ellipse() + 
+  scale_color_manual(
+    values = okabe_ito,
+    breaks = c("F", "G", "W", "O"),
+    labels = c("forest", "grassland", "wetland", "other"),
+    name   = "Habitat Type"
+  ) +
   ggplot2::labs(
     title = "Compositional Dissimilarity (NMDS)",
-    subtitle = "Based on Bray-Curtis dissimilarity on raw counts",
+    #subtitle = "Based on Bray-Curtis dissimilarity on raw counts",
     caption = paste("Stress:", round(nmds_result$stress, 3))
   ) +
   ggplot2::theme_minimal()
 
 print(nmds_plot)
-# ggplot2::ggsave("Outputs/Figures/nmds_plot.png", nmds_plot, width = 8, height = 6)
+ggplot2::ggsave("Outputs/Figures/nmds_plot.png", nmds_plot, width = 8, height = 6)
 # ----------------------------------------------------------------- #
 # Deployment Similarity Dendrogram (ggplot2 solution) ----
 # (Requires 'vegan', 'ggdendro', 'ggplot2', 'dplyr')
