@@ -56,7 +56,7 @@ data_filtered <- acoustic_data %>%
     confidence_bin = dplyr::case_when(
       confidence >= 0.9 ~ bin_levels[1],
       confidence >= 0.7 ~ bin_levels[2],
-      TRUE ~ bin_levels[3] # All remaining (0.70 - 0.849...)
+      TRUE ~ bin_levels[3] # All remaining (0.50 - 0.699...)
     ),
     # Convert 'confidence_bin' to a factor to control stacking order
     confidence_bin = factor(confidence_bin, levels = bin_levels)
@@ -66,6 +66,30 @@ data_filtered <- acoustic_data %>%
   )
 
 message("Data filtered and binned successfully.")
+
+# ----------------------------------------------------------------- #
+## Filter: Keep One Detection Per Species Per Recording ----
+# ----------------------------------------------------------------- #
+
+message("Original row count: ", nrow(data_filtered))
+
+data_presence_per_file <- data_filtered %>%
+  # 1. Group by the unique recording identifier AND species
+  # We use partner + deployment + filename to ensure uniqueness across dataset
+  dplyr::group_by(filename, species_name) %>%
+  
+  # 2. Keep only the single best detection (highest confidence)
+  # with_ties = FALSE ensures we strictly get 1 row even if two have same score
+  dplyr::slice_max(confidence, n = 1, with_ties = FALSE) %>%
+  
+  # 3. Ungroup to return to a normal data frame
+  dplyr::ungroup()
+
+message("New row count (Presence per file): ", nrow(data_presence_per_file))
+
+# Optional: Check the result
+# This should now be 1 for every row
+# data_presence_per_file %>% count(partner, deployment, filename, species_name) %>% pull(n) %>% max()
 
 # ----------------------------------------------------------------- #
 # High-Level Summaries ----
@@ -91,7 +115,7 @@ message("--- Total Raw Detections (Before Filtering) ---")
 print(nrow(acoustic_data))
 
 # ----------------------------------------------------------------- #
-# Plot 1: Confidence Score Distribution (on *original* data) ----
+## Plot 1: Confidence Score Distribution (on *original* data) ----
 # ----------------------------------------------------------------- #
 # This helps you see if your 0.7 threshold is reasonable.
 
@@ -140,7 +164,7 @@ ggplot2::ggsave(
 )
 
 # ----------------------------------------------------------------- #
-# Plot 2.1: Top Species ----
+## Plot 2.1.1: Top Species ----
 # ----------------------------------------------------------------- #
 # What are the most common species found, stacked by confidence?
 
@@ -151,15 +175,15 @@ top_n_species <- 20
 
 # 1. Find the *names* of the top 20 species based on *total* count
 top_species_names <- data_filtered %>%
-  dplyr::count(species, sort = TRUE) %>%
+  dplyr::count(species_name, sort = TRUE) %>%
   dplyr::slice_head(n = top_n_species) %>%
-  dplyr::pull(species) # pull() extracts just the 'species' column as a vector
+  dplyr::pull(species_name) # pull() extracts just the 'species' column as a vector
 
 # 2. Create the summary data for plotting
 # Filter for *only* those top species, then count detections *within each bin*
 top_species_data <- data_filtered %>%
-  dplyr::filter(species %in% top_species_names) %>%
-  dplyr::count(species, confidence_bin, name = "n")
+  dplyr::filter(species_name %in% top_species_names) %>%
+  dplyr::count(species_name, confidence_bin, name = "n")
 
 # 3. Create the stacked bar plot
 # We map 'fill' to 'confidence_bin'
@@ -169,7 +193,7 @@ top_species_plot <- ggplot2::ggplot(
   # y-axis: 'n' (the count for each bin)
   # fill: 'confidence_bin' to create the stacks
   ggplot2::aes(
-    x = forcats::fct_reorder(species, n, .fun = sum),
+    x = forcats::fct_reorder(species_name, n, .fun = sum),
     y = n,
     fill = confidence_bin
   )
@@ -190,7 +214,7 @@ top_species_plot <- ggplot2::ggplot(
 
 # print(top_species_plot)
 ggplot2::ggsave(
-  "Outputs/Figures/2_1_top_species_plot_stacked.png", # Changed filename
+  "Outputs/Figures/2_1_1_top_species_plot_stacked.png", # Changed filename
   top_species_plot,
   width = 11, # Increased width slightly for legend
   height = 7
@@ -199,7 +223,66 @@ ggplot2::ggsave(
 message("Stacked species plot saved.")
 
 # ----------------------------------------------------------------- #
-# Plot 2.2: Top RL Species (MODIFIED for stacked bars) ----
+## Plot 2.1.2: Top Species ----
+# ----------------------------------------------------------------- #
+# What are the most common species found, stacked by confidence?
+
+message("Generating Plot 2: Top Species (Stacked)...")
+
+# Set how many top species you want to see
+top_n_species <- 20
+
+# 1. Find the *names* of the top 20 species based on *total* count
+top_species_names <- data_presence_per_file %>%
+  dplyr::count(species_name, sort = TRUE) %>%
+  dplyr::slice_head(n = top_n_species) %>%
+  dplyr::pull(species_name) # pull() extracts just the 'species' column as a vector
+
+# 2. Create the summary data for plotting
+# Filter for *only* those top species, then count detections *within each bin*
+top_species_data <- data_filtered %>%
+  dplyr::filter(species_name %in% top_species_names) %>%
+  dplyr::count(species_name, confidence_bin, name = "n")
+
+# 3. Create the stacked bar plot
+# We map 'fill' to 'confidence_bin'
+top_species_plot <- ggplot2::ggplot(
+  top_species_data,
+  # x-axis: Reorder 'species' factor by the SUM of 'n' (total count)
+  # y-axis: 'n' (the count for each bin)
+  # fill: 'confidence_bin' to create the stacks
+  ggplot2::aes(
+    x = forcats::fct_reorder(species_name, n, .fun = sum),
+    y = n,
+    fill = confidence_bin
+  )
+) +
+  ggplot2::geom_col() + # geom_col() is correct for stacked bars (position="stack" is default)
+  ggplot2::coord_flip() + # Flip coordinates so names are readable
+  ggplot2::scale_fill_brewer(palette = "cool", direction = -1) + # Use a nice color scale
+  ggplot2::labs(
+    title = paste("Top", top_n_species, "Most Frequent Species"),
+    x = "Species",
+    y = "Number of Detections",
+    fill = "Confidence Bin" # Legend title
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    axis.text.y = ggplot2::element_text(face = "italic") # Italicize species names
+  )
+
+# print(top_species_plot)
+ggplot2::ggsave(
+  "Outputs/Figures/2_1_2_top_species_plot_stacked.png", # Changed filename
+  top_species_plot,
+  width = 11, # Increased width slightly for legend
+  height = 7
+)
+
+message("Stacked species plot saved.")
+
+# ----------------------------------------------------------------- #
+## Plot 2.2: Top RL Species (MODIFIED for stacked bars) ----
 # ----------------------------------------------------------------- #
 # What are the most common species found, stacked by confidence?
 
@@ -267,7 +350,7 @@ ggsave(
 message("Stacked species plot saved.")
 
 # ----------------------------------------------------------------- #
-# Plot 2.3: Top Species by partner ----
+## Plot 2.3: Top Species by partner ----
 # ----------------------------------------------------------------- #
 # directory for outputs
 out_dir <- "Outputs/Figures"
@@ -362,7 +445,7 @@ for (p in partners) {
 message("All partner-specific plots completed.")
 
 # ----------------------------------------------------------------- #
-# Plot 2.4: Top Species by habitat ----
+## Plot 2.4.1: Top Species by habitat ----
 # ----------------------------------------------------------------- #
 # small helper: generate n shades from very light to base colour
 make_shades <- function(base_col, n) {
@@ -388,17 +471,17 @@ for (h in habitats) {
   
   # top species within habitat
   top_species_names <- df_h %>%
-    count(species, sort = TRUE) %>%
+    count(species_name, sort = TRUE) %>%
     slice_head(n = top_n_species) %>%
-    pull(species)
+    pull(species_name)
   
   top_species_data <- df_h %>%
-    filter(species %in% top_species_names) %>%
-    count(species, confidence_bin, name = "n") %>%
-    group_by(species) %>%
+    filter(species_name %in% top_species_names) %>%
+    count(species_name, confidence_bin, name = "n") %>%
+    group_by(species_name) %>%
     mutate(total = sum(n)) %>%
     ungroup() %>%
-    mutate(species = fct_reorder(species, total, .fun = sum))
+    mutate(species = fct_reorder(species_name, n, .fun = sum))
   
   # robust extraction + ascending ordering of confidence bins
   bin_levels <- top_species_data %>%
@@ -433,7 +516,7 @@ for (h in habitats) {
     coord_flip(expand = FALSE) +
     scale_fill_manual(values = shades, na.value = "grey60", drop = FALSE) +
     labs(
-      title = paste0("Top ", top_n_species, " Species — ", habitat_name),
+      title = paste0(habitat_name),
       x = "Species",
       y = "Detections",
       fill = "Confidence bin"
@@ -544,7 +627,190 @@ ggsave(
 message("Saved combined habitat plot with per-habitat confidence-shaded bars and legends underneath.")
 
 # ----------------------------------------------------------------- #
-# Plot 3: Detections per Recording (on *filtered* data) ----
+## Plot 2.4.2: Top Species by habitat ----
+# ----------------------------------------------------------------- #
+# small helper: generate n shades from very light to base colour
+make_shades <- function(base_col, n) {
+  # gradient from a very light grey to the base colour
+  grDevices::colorRampPalette(c("grey95", base_col))(n)
+}
+
+top_n_species <- 10
+habitats <- c("F","G","W")
+plots <- list()
+legends_grobs <- list()
+habitat_labels <- c(F = "Forest", G = "Grassland", W = "Wetland", O = "Other")
+
+for (h in habitats) {
+  df_h <- data_presence_per_file %>% filter(habitat == h)
+  if (nrow(df_h) == 0) {
+    message("No data for habitat ", h, " — skipping")
+    next
+  }
+  
+  habitat_name <- habitat_labels[h]
+  if (is.na(habitat_name)) habitat_name <- h
+  
+  # top species within habitat
+  top_species_names <- df_h %>%
+    count(species_name, sort = TRUE) %>%
+    slice_head(n = top_n_species) %>%
+    pull(species_name)
+  
+  top_species_data <- df_h %>%
+    filter(species_name %in% top_species_names) %>%
+    count(species_name, confidence_bin, name = "n") %>%
+    group_by(species_name) %>%
+    mutate(total = sum(n)) %>%
+    ungroup() %>%
+    mutate(species = fct_reorder(species_name, n, .fun = sum)) %>%
+    dplyr::arrange(desc(total))
+  
+  # robust extraction + ascending ordering of confidence bins
+  bin_levels <- top_species_data %>%
+    distinct(confidence_bin) %>%
+    pull(confidence_bin) %>%
+    as.character() %>%
+    na.omit() %>%
+    unique() %>%
+    tibble(bin = .) %>%
+    mutate(
+      # extract a numeric lower bound: e.g. "0.70 - 0.85" -> 0.70, "> 0.95" -> 0.95
+      lower = case_when(
+        str_detect(bin, "^>\\s*[0-9.]") ~ as.numeric(str_replace(bin, "^>\\s*", "")),
+        str_detect(bin, "^[0-9.]") ~ as.numeric(str_extract(bin, "^[0-9.]+")),
+        TRUE ~ NA_real_
+      )
+    ) %>%
+    arrange(lower) %>%      # ascending: low -> high
+    pull(bin)
+  
+  if (length(bin_levels) == 0) {
+    message("No confidence bins for habitat ", h, " — skipping")
+    next
+  }
+  
+  # create shades for this habitat (darkest = base colour -> map to the highest-confidence bin)
+  shades <- make_shades(okabe_ito[h], length(bin_levels))
+  names(shades) <- bin_levels  # map names to bin values
+  
+  p <- ggplot(top_species_data, aes(x = species, y = n, fill = confidence_bin)) +
+    geom_col() +
+    coord_flip(expand = FALSE) +
+    scale_fill_manual(values = shades, na.value = "grey60", drop = FALSE) +
+    labs(
+      title = paste0(habitat_name),
+      x = "Species",
+      y = "Detections",
+      fill = "Confidence bin"
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      axis.text.y = element_text(face = "italic", size = 8),
+      axis.title.x = element_text(size = 11, face = "bold"),
+      axis.title.y = element_text(size = 11, face = "bold"),
+      plot.title = element_text(face = "bold", size = 14, color = okabe_ito[h]),
+      plot.subtitle = element_text(size = 10),
+      plot.margin = margin(6, 6, 6, 6),
+      legend.position = "bottom",
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 8),
+      legend.key.width = unit(0.9, "cm")
+    )
+  
+  # store plot
+  plots[[h]] <- p
+  
+  # extract legend grob for this plot (we'll arrange these under the combined plot)
+  legends_grobs[[h]] <- cowplot::get_legend(p + theme(legend.position = "bottom",
+                                                      legend.direction = "vertical",
+                                                      legend.key.size = unit(0.6, "lines")))
+}
+
+# remove legends from the main plots (we'll add the legends row below)
+plots_no_legend <- lapply(plots, function(pp) pp + theme(legend.position = "none"))
+
+# combine the three panels in a single row using cowplot::plot_grid
+# ensure order F, G, W
+plot_row <- cowplot::plot_grid(
+  plots_no_legend[["F"]],
+  plots_no_legend[["G"]],
+  plots_no_legend[["W"]],
+  ncol = 3,
+  align = "hv",
+  rel_widths = c(1,1,1)
+)
+
+# now create a single legend row by placing each legend grob side by side
+# convert grobs to ggdraw objects for consistent plotting
+legend_plots <- lapply(legends_grobs, function(g) {
+  if (is.null(g)) return(NULL)
+  cowplot::ggdraw(g)
+})
+
+# keep only non-null legends and align them
+
+# Check for nulls and remove (already done in your code)
+legend_plots <- legend_plots[!vapply(legend_plots, is.null, logical(1))]
+
+if (length(legend_plots) == 0) {
+  # no legends found — just save the plot_row
+  final_plot <- plot_row
+} else {
+  # --- FIX 1: Use do.call to pass the list elements as arguments ---
+  # We use the corrected function signature:
+  legend_row <- do.call(
+    cowplot::plot_grid, 
+    c(
+      plotlist = legend_plots, 
+      list(
+        ncol = length(legend_plots), 
+        rel_widths = rep(1, length(legend_plots))
+      )
+    )
+  )
+  
+  # Note: A simpler, more reliable way (if you don't need complex rel_widths) is:
+  # legend_row <- plot_grid(plotlist = legend_plots, ncol = length(legend_plots)) 
+  # Wait, the error suggests even 'plotlist' is unused. The simple fix is:
+  
+  
+  # --- FIX 1 (Revised and simpler): Use do.call directly on the plot list ---
+  legend_row <- do.call(
+    cowplot::plot_grid, 
+    c(
+      legend_plots, 
+      list(
+        ncol = length(legend_plots), 
+        # You may omit rel_widths if they are all equal
+        rel_widths = rep(1, length(legend_plots))
+      )
+    )
+  )
+  
+  # stack the main row and the legend row
+  final_plot <- cowplot::plot_grid(
+    plot_row, 
+    legend_row, 
+    ncol = 1, 
+    rel_heights = c(1, 0.18)
+  )
+}
+
+# save final figure
+ggsave(
+  filename = "Outputs/Figures/2_4_2_top_species_by_habitat_shaded.png",
+  plot = final_plot,
+  width = 20,
+  height = 9,
+  dpi = 300,
+  units = "in"
+)
+
+message("Saved combined habitat plot with per-habitat confidence-shaded bars and legends underneath.")
+
+# ----------------------------------------------------------------- #
+## Plot 3: Detections per Recording (on *filtered* data) ----
 # ----------------------------------------------------------------- #
 # How "busy" are the recordings? Do most have 1-2 detections or 50+?
 
@@ -583,7 +849,7 @@ ggplot2::ggsave(
 )
 
 # ----------------------------------------------------------------- #
-# Summary Table by Group (e.g., deployment) ----
+## Summary Table by Group (e.g., deployment) ----
 # ----------------------------------------------------------------- #
 
 message("Generating Summary Table by Deployment...")
@@ -622,7 +888,7 @@ deployment_summary_site <- data_filtered %>%
   dplyr::arrange(dplyr::desc(total_detections)) # Sort by most detections
 
 # ----------------------------------------------------------------- #
-# Save All Summary Tables ---- 
+### Save All Summary Tables ---- 
 # ----------------------------------------------------------------- #
 
 # --- Define Output Filenames ---
@@ -633,7 +899,7 @@ file_site <- "Outputs/Results/deployment_summary_site"
 
 
 # ----------------------------------------------------------------- #
-## 1. Save all summaries as CSV files ----
+### 1. Save all summaries as CSV files ----
 # ----------------------------------------------------------------- #
 
 message("--- Saving CSV files ---")
@@ -662,7 +928,7 @@ message("Saved: ", paste0(file_site, ".csv"))
 message("--- CSV saving complete. ---")
 
 # ----------------------------------------------------------------- #
-## 2. Save all summaries as Word (.docx) Tables ----
+### 2. Save all summaries as Word (.docx) Tables ----
 # ----------------------------------------------------------------- #
 
 message("--- Saving Word (.docx) files ---")
@@ -703,7 +969,7 @@ message("--- All files saved. ---")
 message("--- EDA script complete. ---")
 
 # ----------------------------------------------------------------- #
-# Rarefaction and Extrapolation ---- 
+## Rarefaction and Extrapolation ---- 
 # ----------------------------------------------------------------- #
 # ----------------------------------------------------------------- #
 # Create Species-Site Matrix (MODIFIED)
@@ -770,7 +1036,7 @@ message("Richness rarefied to an effort of ", min_sample_size, " detections.")
 print(head(rarefied_df))
 
 # -----------------------------------------------------------------#
-# Compositional Analysis (NMDS) ----
+## Compositional Analysis (NMDS) ----
 # -----------------------------------------------------------------#
 
 # Use the same 'species_count_matrix' created above.
@@ -846,12 +1112,12 @@ nmds_plot <- ggplot2::ggplot(data_scores, ggplot2::aes(x = NMDS1, y = NMDS2, col
 print(nmds_plot)
 ggplot2::ggsave("Outputs/Figures/nmds_plot.png", nmds_plot, width = 8, height = 6)
 # ----------------------------------------------------------------- #
-# Deployment Similarity Dendrogram (ggplot2 solution) ----
+## Deployment Similarity Dendrogram (ggplot2 solution) ----
 # (Requires 'vegan', 'ggdendro', 'ggplot2', 'dplyr')
 # ----------------------------------------------------------------- #
 
 # ----------------------------------------------------------------- #
-## 1. & 2. Calculate Dissimilarity & Cluster ----
+### 1. & 2. Calculate Dissimilarity & Cluster ----
 # ----------------------------------------------------------------- #
 # (This part is identical to the previous script)
 # We must use the 'species_count_matrix' with UNIQUE row names
@@ -864,7 +1130,7 @@ message("Running hierarchical clustering (hclust)...")
 h_cluster <- hclust(bray_dissim_matrix, method = "average")
 
 # ----------------------------------------------------------------- #
-## 3. Extract Data for ggplot ----
+### 3. Extract Data for ggplot ----
 # ----------------------------------------------------------------- #
 message("Extracting dendrogram data for ggplot...")
 
@@ -873,7 +1139,7 @@ message("Extracting dendrogram data for ggplot...")
 dendro_data <- ggdendro::dendro_data(h_cluster, type = "rectangle")
 
 # ----------------------------------------------------------------- #
-## 4. Augment Label Data with 'partner' Info ----
+### 4. Augment Label Data with 'partner' Info ----
 # ----------------------------------------------------------------- #
 # We need to add the 'partner' column to the labels data frame
 # so we can use it for the 'color' aesthetic.
@@ -892,7 +1158,7 @@ label_data <- label_data %>%
   dplyr::left_join(partner_lookup, by = c("label" = "partner_deployment"))
 
 # ----------------------------------------------------------------- #
-## 5. Build the ggplot ----
+### 5. Build the ggplot ----
 # ----------------------------------------------------------------- #
 message("Building ggplot dendrogram...")
 
@@ -941,7 +1207,7 @@ dendro_plot <- ggplot2::ggplot() +
   )
 
 # ----------------------------------------------------------------- #
-## 6. Save and Print the Plot ----
+### 6. Save and Print the Plot ----
 # ----------------------------------------------------------------- #
 
 # Print the plot to the RStudio viewer
@@ -957,7 +1223,7 @@ ggplot2::ggsave(
 )
 
 # -----------------------------------------------------------------#
-# Phenology Analysis with Effort Control (GAM) ----
+## Phenology Analysis with Effort Control (GAM) ----
 # -----------------------------------------------------------------#
 
 # --- CONFIGURATION ---
@@ -996,7 +1262,7 @@ recording_metadata <- data_filtered %>%
   )
 
 # -----------------------------------------------------------------#
-## 1. Choose Target Species ----
+### 1. Choose Target Species ----
 # -----------------------------------------------------------------#
 target_species <- top_species_names[1]
 
@@ -1006,7 +1272,7 @@ species_detections <- data_filtered %>%
   dplyr::filter(species == target_species)
 
 # -----------------------------------------------------------------#
-## 2. Prepare Data for Modeling ----
+### 2. Prepare Data for Modeling ----
 # -----------------------------------------------------------------#
 message("Aggregating effort and detections by day...")
 
@@ -1054,7 +1320,7 @@ phenology_data <- data.frame(
 
 
 # -----------------------------------------------------------------#
-## 3. Run the GAM (The Phenology Indicator) ----
+### 3. Run the GAM (The Phenology Indicator) ----
 # -----------------------------------------------------------------#
 message("Fitting GAM model...")
 
@@ -1074,7 +1340,7 @@ pheno_model <- mgcv::gam(
 # print(summary(pheno_model))
 
 # -----------------------------------------------------------------#
-## 4. Plot the Phenology Curve ----
+### 4. Plot the Phenology Curve ----
 # -----------------------------------------------------------------#
 message("Generating phenology plot...")
 
@@ -1145,7 +1411,7 @@ ggplot2::ggsave(
 # print(phenology_plot)
 
 # -----------------------------------------------------------------#
-## 5. Extract Derived Metrics (Peak, Onset, etc.) ----
+### 5. Extract Derived Metrics (Peak, Onset, etc.) ----
 # -----------------------------------------------------------------#
 message("Extracting key phenology dates...")
 
@@ -1185,7 +1451,7 @@ message(paste("Season Onset (10%): DOY", season_onset$doy))
 message(paste("Season End (10%):   DOY", season_end$doy))
 
 # -----------------------------------------------------------------#
-# Grouped Phenology (Day of Year 120-260) ----
+## Grouped Phenology (Day of Year 120-260) ----
 # -----------------------------------------------------------------#
 
 # 1. Prepare Data with DOY filtering
@@ -1278,7 +1544,7 @@ print(phenology_plot)
 # --- 4. EXPORT TO A4 PORTRAIT ---
 ggsave("Outputs/Figures/phenology_facet.png", plot = phenology_plot, width = 210, height = 297, units = "mm")
 
-# Grouped GAM Phenology ----
+## Grouped GAM Phenology ----
 # A. Filter Date Window & Habitats
 seasonal_data <- data_filtered %>%
   dplyr::filter(format(date, "%m-%d") >= "03-15" & format(date, "%m-%d") <= "09-30") %>%
