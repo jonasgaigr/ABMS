@@ -1595,54 +1595,61 @@ final_modeling_data <- model_input_data %>%
   dplyr::filter(partner %in% valid_countries)
 
 # -----------------------------------------------------------------#
-# 4. ITERATIVE GAM MODELING
+# 4. ITERATIVE GAM MODELING (High Flexibility)
 # -----------------------------------------------------------------#
 
 fit_gam_phenology <- function(df) {
   
-  # Safety check: Skip if data is too sparse for k=20
-  if(nrow(df) < 25) return(NULL)
+  # Safety check
+  if(nrow(df) < 30) return(NULL)
   
   tryCatch({
-    # 1. Fit the Model (Your Code)
+    # 1. Fit the Model - HIGH FLEXIBILITY VERSION
+    # bs = "ad" (Adaptive smooth): Allows the curve to be very wiggly in active periods
+    # and smoother in quiet periods. Ideally suited for phenology peaks.
+    # k = 50: High basis dimension to capture fine-scale variation (weekly peaks)
+    
     m <- mgcv::gam(
-      total_detections ~ s(doy, bs = "tp", k = 20),
+      total_detections ~ s(doy, bs = "ad", k = 50), 
       data = df,
-      family = "poisson",
-      offset = log(effort_for_offset) # Controls for your calculated hours
+      family = mgcv::nb(),  # Negative Binomial (handles overdispersion)
+      offset = log(effort_for_offset),
+      method = "REML" 
     )
     
     # 2. Predict for Standardized Effort
-    # We predict for the full window (Mar 15 - Sept 30) roughly DOY 74-273
     pred_grid <- data.frame(
       doy = seq(min(df$doy), max(df$doy), length.out = 100),
-      effort_for_offset = 0.2 # Standardize to 1 recording each 5 mins
+      effort_for_offset = 0.2 # Standardize to 1 recording per 5 mins
     )
     
     preds <- predict(m, newdata = pred_grid, type = "link", se.fit = TRUE)
     
     # 3. Return formatted results
     pred_grid %>%
-      mutate(
+      dplyr::mutate(
         fit_link = preds$fit,
         se_link = preds$se.fit,
         predicted_count = exp(fit_link),
         lower_ci = exp(fit_link - 1.96 * se_link),
         upper_ci = exp(fit_link + 1.96 * se_link),
-        date = as.Date(doy, origin = paste0(year(Sys.Date()), "-01-01")) # Dummy year for plotting
+        date = as.Date(doy, origin = paste0(lubridate::year(Sys.Date()), "-01-01"))
       )
-  }, error = function(e) return(NULL))
+  }, error = function(e) {
+    message("GAM Fit Error: ", e$message)
+    return(NULL)
+  })
 }
 
-message("Fitting GAMs... (This accounts for recording duration)")
+message("Fitting High-Flexibility GAMs (Adaptive Spline, k=50)...")
 
-# Map over every Country/Habitat combination
+# Run the mapping (Same as your original code)
 plot_predictions <- final_modeling_data %>%
   dplyr::group_by(partner, habitat) %>%
-  nest() %>%
-  dplyr::mutate(gam_preds = map(data, fit_gam_phenology)) %>%
+  tidyr::nest() %>%
+  dplyr::mutate(gam_preds = purrr::map(data, fit_gam_phenology)) %>%
   dplyr::select(-data) %>%
-  unnest(gam_preds)
+  tidyr::unnest(gam_preds)
 
 # -----------------------------------------------------------------#
 # 5. VISUALIZATION
@@ -1685,7 +1692,7 @@ phenology_plot <- ggplot(plot_predictions, aes(x = date, y = predicted_count)) +
 
 print(phenology_plot)
 
-#ggsave("phenology_gam_duration_corrected.png", plot = phenology_plot, width = 210, height = 297, units = "mm")
+ggsave("phenology_gam_duration_corrected.png", plot = phenology_plot, width = 210, height = 297, units = "mm")
 
 # -----------------------------------------------------------------#
 # Phenology Analysis in a Loop ----
