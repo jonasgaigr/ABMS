@@ -1601,7 +1601,7 @@ final_modeling_data <- model_input_data %>%
 fit_gam_phenology <- function(df) {
   
   # Safety check
-  if(nrow(df) < 30) return(NULL)
+  if(nrow(df) < 15) return(NULL)
   
   tryCatch({
     # 1. Fit the Model - HIGH FLEXIBILITY VERSION
@@ -1610,7 +1610,7 @@ fit_gam_phenology <- function(df) {
     # k = 50: High basis dimension to capture fine-scale variation (weekly peaks)
     
     m <- mgcv::gam(
-      total_detections ~ s(doy, bs = "ad", k = 50), 
+      total_detections ~ s(doy, bs = "tp", k = 50), 
       data = df,
       family = mgcv::nb(),  # Negative Binomial (handles overdispersion)
       offset = log(effort_for_offset),
@@ -1692,7 +1692,7 @@ phenology_plot <- ggplot(plot_predictions, aes(x = date, y = predicted_count)) +
 
 print(phenology_plot)
 
-ggsave("phenology_gam_duration_corrected.png", plot = phenology_plot, width = 210, height = 297, units = "mm")
+ggsave("Outputs/Figures/phenology_gam_duration_corrected.png", plot = phenology_plot, width = 210, height = 297, units = "mm")
 
 # -----------------------------------------------------------------#
 # Phenology Analysis in a Loop ----
