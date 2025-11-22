@@ -256,6 +256,7 @@ acoustic_data <-
   acoustic_data_raw %>%
   dplyr::mutate(
     species_name = stringr::str_extract(species, "^[^_]+"),
+    english_name = stringr::str_remove(species, "^[^_]+_"),
     date_raw = str_extract(filename, "(?<=_)\\d{8}(?=_)"),
     time_raw = str_extract(filename, "(?<=_)\\d{6}(?=\\.wav)"),
     date = ymd(date_raw),
@@ -278,10 +279,6 @@ acoustic_data <-
       ),
     by = c("species_name" = "scientificName")
   ) 
-
-# ----------------------------------------------------------------- #
-## 4. Success! ----
-# ----------------------------------------------------------------- #
 
 # Clean up the temporary zip file
 file.remove(temp_zip_path)
@@ -308,3 +305,7 @@ thresholds <- readr::read_csv(
 partner_country <- readr::read_csv(
   "Data/Inputs/partner_country.csv",
 )
+
+# ----------------------------------------------------------------- #
+# END SCRIPT ----
+# ----------------------------------------------------------------- #
