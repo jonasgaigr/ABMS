@@ -1546,7 +1546,7 @@ ggsave("Outputs/Figures/phenology_facet.png", plot = phenology_plot, width = 210
 
 ## Grouped GAM Phenology ----
 # A. Filter Date Window & Habitats
-seasonal_data <- data_filtered %>%
+seasonal_data <- data_presence_per_file %>%
   dplyr::filter(format(date, "%m-%d") >= "03-15" & format(date, "%m-%d") <= "09-30") %>%
   dplyr::filter(habitat %in% c("F", "G", "W"))
 
