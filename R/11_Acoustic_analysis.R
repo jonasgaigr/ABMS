@@ -1185,35 +1185,42 @@ message(paste("Season Onset (10%): DOY", season_onset$doy))
 message(paste("Season End (10%):   DOY", season_end$doy))
 
 # -----------------------------------------------------------------#
-# Grouped Phenology ----
+# Grouped Phenology (Day of Year 120-260) ----
 # -----------------------------------------------------------------#
 
-# format(date, "%m-%d") converts dates to "03-15", "09-30", etc.
-# This allows us to filter the window regardless of the year (2020, 2021, etc.)
+# 1. Prepare Data with DOY filtering
+# We calculate Day of Year (doy) and filter immediately
 season_filtered_data <- data_filtered %>%
-  filter(format(date, "%m-%d") >= "03-15" & format(date, "%m-%d") <= "09-30")
+  dplyr::mutate(doy = lubridate::yday(date)) %>%
+  dplyr::filter(doy >= 120 & doy <= 260) %>%
+  dplyr::left_join(
+    .,
+    partner_country,
+    by = c("partner" = "partner")
+  ) 
 
-# A. Identify Countries with > 120 recording days
-# We count distinct dates per country to ensure they have a wide enough timeline.
+# A. Identify Countries with enough data
+# We count distinct DOYs to ensure timeline coverage
 valid_countries <- season_filtered_data %>%
-  group_by(partner, habitat) %>%
-  summarise(recording_days = n_distinct(date)) %>%
-  filter(recording_days >= 105) %>%  # The Constraint
-  group_by(partner) %>%
-  summarise(valid_habitat = n_distinct(habitat)) %>%
-  filter(valid_habitat >= 2) %>%
-  pull(partner)
+  dplyr::group_by(partner, habitat) %>%
+  dplyr::summarise(recording_days = dplyr::n_distinct(doy)) %>% # Changed to count distinct DOYs
+  dplyr::filter(recording_days >= 105) %>% # The Constraint
+  dplyr::group_by(partner) %>%
+  dplyr::summarise(valid_habitat = dplyr::n_distinct(habitat)) %>%
+  dplyr::filter(valid_habitat >= 2) %>%
+  dplyr::pull(partner)
 
 print(paste("Countries included:", paste(valid_countries, collapse = ", ")))
 
-# B. Filter the main dataset
-# We keep only valid countries AND only the specific habitats requested (F, G, W)
+# B. Filter and Aggregate the main dataset
 plot_data <- season_filtered_data %>%
-  filter(partner %in% valid_countries) %>%
-  filter(habitat %in% c("F", "G", "W")) %>%
-  dplyr::group_by(partner, habitat, date) %>%
+  dplyr::filter(partner %in% valid_countries) %>%
+  dplyr::filter(habitat %in% c("F", "G", "W")) %>%
+  # IMPORTANT: Group by 'doy' now, not 'date'. 
+  # This combines multiple years into one seasonal curve.
+  dplyr::group_by(country, habitat, doy) %>% 
   dplyr::reframe(
-    total_detections = n()
+    total_detections = dplyr::n()
   )
 
 # --- 3. THE VISUALIZATION (FACET GRID) ---
@@ -1225,12 +1232,11 @@ habitat_labeller <- c(
   "W" = "Wetland"
 )
 
-phenology_plot <- ggplot(plot_data, aes(x = date, y = total_detections)) +
+phenology_plot <- ggplot2::ggplot(plot_data, ggplot2::aes(x = doy, y = total_detections)) +
   
   # Apply Color and Fill based on Habitat
-  # We set alpha (transparency) for the fill so the ribbon isn't too solid
-  geom_smooth(
-    aes(color = habitat, fill = habitat), 
+  ggplot2::geom_smooth(
+    ggplot2::aes(color = habitat, fill = habitat), 
     method = "loess", 
     span = 0.3, 
     se = TRUE, 
@@ -1238,31 +1244,32 @@ phenology_plot <- ggplot(plot_data, aes(x = date, y = total_detections)) +
   ) +
   
   # Apply the Okabe-Ito Palette
-  scale_color_manual(values = okabe_ito) +
-  scale_fill_manual(values = okabe_ito) +
+  ggplot2::scale_color_manual(values = okabe_ito) +
+  ggplot2::scale_fill_manual(values = okabe_ito) +
   
-  # Facet Grid with Labeller
-  # We pass the 'habitat_labeller' to rename F/G/W to Forest/Grassland/Wetland headers
-  facet_grid(
-    rows = vars(partner), 
-    cols = vars(habitat), 
+  # Facet Grid
+  ggplot2::facet_grid(
+    rows = ggplot2::vars(country), 
+    cols = ggplot2::vars(habitat), 
     scales = "free_y",
-    labeller = labeller(habitat = habitat_labeller) 
+    labeller = ggplot2::labeller(habitat = habitat_labeller) 
   ) +
   
   # Formatting
-  theme_bw() +
-  labs(
-    title = "Relative Bird Activity (March 15 - Sept 30)",
+  ggplot2::theme_bw() +
+  ggplot2::labs(
+    #title = "Relative Bird Activity",
     y = "Relative Activity Index",
-    x = "Date"
+    x = "Day of Year"
   ) +
-  theme(
-    strip.background = element_rect(fill = "#f0f0f0"),
-    strip.text = element_text(face = "bold", size = 10),
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    panel.grid.minor = element_blank(),
-    legend.position = "none" # Remove legend since headers explain the colors
+  ggplot2::theme(
+    # --- CHANGE 2: Remove grey background ---
+    # fill = "white" removes the grey. color = "black" keeps the border box.
+    strip.background = ggplot2::element_rect(fill = "white", color = "black"), 
+    strip.text = ggplot2::element_text(face = "bold", size = 10),
+    axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5), # Angle 0 is usually readable for numbers
+    panel.grid.minor = ggplot2::element_blank(),
+    legend.position = "none"
   )
 
 # Display the plot
