@@ -1456,7 +1456,7 @@ message(paste("Season End (10%):   DOY", season_end$doy))
 
 # 1. Prepare Data with DOY filtering
 # We calculate Day of Year (doy) and filter immediately
-season_filtered_data <- data_filtered %>%
+season_filtered_data <- data_presence_per_file %>%
   dplyr::mutate(doy = lubridate::yday(date)) %>%
   dplyr::filter(doy >= 120 & doy <= 260) %>%
   dplyr::left_join(
@@ -1497,6 +1497,14 @@ habitat_labeller <- c(
   "G" = "Grassland",
   "W" = "Wetland"
 )
+
+# Define the North-to-South order
+# (Update this list with the actual countries in your dataset)
+ns_order <- c("Finland", "Sweden", "Denmark", "Netherlands", "Belgium",
+              "Slovakia", "Croatia", "Bulgaria", "Spain")
+
+# Update the factor levels in the data
+plot_data$country <- factor(plot_data$country, levels = ns_order)
 
 phenology_plot <- ggplot2::ggplot(plot_data, ggplot2::aes(x = doy, y = total_detections)) +
   
@@ -1546,17 +1554,24 @@ ggsave("Outputs/Figures/phenology_facet.png", plot = phenology_plot, width = 210
 
 ## Grouped GAM Phenology ----
 # A. Filter Date Window & Habitats
+seasonal_data_effort <- acoustic_data %>%
+  dplyr::filter(format(date, "%m-%d") >= "03-15" & format(date, "%m-%d") <= "09-30") %>%
+  dplyr::mutate(habitat = as.character(stringr::str_sub(deployment, 1, 1))) %>%
+  dplyr::filter(habitat %in% c("F", "G", "W"))
+
 seasonal_data <- data_presence_per_file %>%
   dplyr::filter(format(date, "%m-%d") >= "03-15" & format(date, "%m-%d") <= "09-30") %>%
   dplyr::filter(habitat %in% c("F", "G", "W"))
 
 # B. Calculate EFFORT (Duration in Hours)
 # This calculation remains unchanged as it counts all recording duration
-effort_by_day <- seasonal_data %>% 
-  dplyr::distinct(sourcefileid, partner, habitat, starttime, endtime, date) %>%
+effort_by_day <- seasonal_data_effort %>% 
+  dplyr::distinct(sourcefileid, partner, deployment, habitat, starttime, endtime, date) %>%
   dplyr::mutate(duration_hours = (endtime - starttime) / 3600) %>%
+  dplyr::group_by(partner, habitat, deployment, date) %>%
+  dplyr::summarise(total_effort_hours = n(), .groups = "drop") %>%
   dplyr::group_by(partner, habitat, date) %>%
-  dplyr::summarise(total_effort_hours = sum(duration_hours, na.rm = TRUE), .groups = "drop")
+  dplyr::summarise(total_effort_hours = sum(total_effort_hours, na.rm = TRUE), .groups = "drop")
 
 # C. Calculate DETECTIONS (FIX: Total Community Count)
 detections_by_day <- seasonal_data %>%
@@ -1568,8 +1583,8 @@ detections_by_day <- seasonal_data %>%
   )
 
 # D. COMBINE Effort and Detections
-model_input_data <- effort_by_day %>%
-  dplyr::left_join(detections_by_day, by = c("partner", "habitat", "date")) %>%
+model_input_data <- detections_by_day %>%
+  dplyr::left_join(effort_by_day, by = c("partner", "habitat", "date")) %>%
   dplyr::mutate(
     total_detections = tidyr::replace_na(total_detections, 0),
     doy = lubridate::yday(date),
@@ -1583,16 +1598,20 @@ model_input_data <- effort_by_day %>%
 
 # Identify Valid Countries (>120 days with recording effort in this window)
 valid_countries <- model_input_data %>%
+  dplyr::group_by(partner, habitat) %>%
+  dplyr::summarise(recording_days = dplyr::n_distinct(doy)) %>% # Changed to count distinct DOYs
+  dplyr::filter(recording_days >= 105) %>% # The Constraint
   dplyr::group_by(partner) %>%
-  dplyr::summarise(n_days = dplyr::n_distinct(date)) %>%
-  dplyr::filter(n_days > 120) %>%
+  dplyr::summarise(valid_habitat = dplyr::n_distinct(habitat)) %>%
+  dplyr::filter(valid_habitat >= 2) %>%
   dplyr::pull(partner)
 
 message("Countries included: ", paste(valid_countries, collapse = ", "))
 
 # Filter the dataset for modeling
 final_modeling_data <- model_input_data %>%
-  dplyr::filter(partner %in% valid_countries)
+  dplyr::filter(partner %in% valid_countries) %>%
+  dplyr::filter(doy >= 120 & doy <= 260)
 
 # -----------------------------------------------------------------#
 # 4. ITERATIVE GAM MODELING (High Flexibility)
@@ -1649,7 +1668,20 @@ plot_predictions <- final_modeling_data %>%
   tidyr::nest() %>%
   dplyr::mutate(gam_preds = purrr::map(data, fit_gam_phenology)) %>%
   dplyr::select(-data) %>%
-  tidyr::unnest(gam_preds)
+  tidyr::unnest(gam_preds) %>%
+  dplyr::left_join(
+    .,
+    partner_country,
+    by = c("partner" = "partner")
+  ) 
+
+# Define the North-to-South order
+# (Update this list with the actual countries in your dataset)
+ns_order <- c("Finland", "Sweden", "Denmark", "Netherlands", "Belgium",
+              "Slovakia", "Croatia", "Bulgaria", "Spain")
+
+# Update the factor levels in the data
+plot_predictions$country <- factor(plot_predictions$country, levels = ns_order)
 
 # -----------------------------------------------------------------#
 # 5. VISUALIZATION
@@ -1670,7 +1702,7 @@ phenology_plot <- ggplot(plot_predictions, aes(x = date, y = predicted_count)) +
   
   # Facet Grid
   facet_grid(
-    rows = vars(partner), 
+    rows = vars(country), 
     cols = vars(habitat), 
     scales = "free_y",
     labeller = labeller(habitat = habitat_labeller)
@@ -1683,10 +1715,13 @@ phenology_plot <- ggplot(plot_predictions, aes(x = date, y = predicted_count)) +
     y = "Standardized Activity Index (per hour)",
     x = NULL
   ) +
-  theme(
-    strip.background = element_rect(fill = "#f0f0f0"),
-    strip.text = element_text(face = "bold"),
-    panel.grid.minor = element_blank(),
+  ggplot2::theme(
+    # --- CHANGE 2: Remove grey background ---
+    # fill = "white" removes the grey. color = "black" keeps the border box.
+    strip.background = ggplot2::element_rect(fill = "white", color = "black"), 
+    strip.text = ggplot2::element_text(face = "bold", size = 10),
+    axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5), # Angle 0 is usually readable for numbers
+    panel.grid.minor = ggplot2::element_blank(),
     legend.position = "none"
   )
 
