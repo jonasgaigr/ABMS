@@ -89,7 +89,7 @@ message("New row count (Presence per file): ", nrow(data_presence_per_file))
 
 # Optional: Check the result
 # This should now be 1 for every row
-# data_presence_per_file %>% count(partner, deployment, filename, species_name) %>% pull(n) %>% max()
+data_presence_per_file %>% count(partner, deployment, filename, species_name) %>% pull(n) %>% max()
 
 # ----------------------------------------------------------------- #
 # High-Level Summaries ----
@@ -253,22 +253,23 @@ top_species_plot <- ggplot2::ggplot(
   # fill: 'confidence_bin' to create the stacks
   ggplot2::aes(
     x = forcats::fct_reorder(species_name, n, .fun = sum),
-    y = n,
-    fill = confidence_bin
+    y = n
+    #fill = confidence_bin,
   )
 ) +
-  ggplot2::geom_col() + # geom_col() is correct for stacked bars (position="stack" is default)
+  ggplot2::geom_col(fill = "#009E73") + # geom_col() is correct for stacked bars (position="stack" is default)
   ggplot2::coord_flip() + # Flip coordinates so names are readable
-  ggplot2::scale_fill_brewer(palette = "cool", direction = -1) + # Use a nice color scale
+  #ggplot2::scale_fill_brewer(palette = "cool", direction = -1) + # Use a nice color scale
   ggplot2::labs(
     title = paste("Top", top_n_species, "Most Frequent Species"),
     x = "Species",
-    y = "Number of Detections",
-    fill = "Confidence Bin" # Legend title
+    y = "Number of Detections"
+    #fill = "Confidence Bin" # Legend title
   ) +
-  ggplot2::theme_minimal() +
+  ggplot2::theme_bw() +
   ggplot2::theme(
-    axis.text.y = ggplot2::element_text(face = "italic") # Italicize species names
+    axis.text.y = ggplot2::element_text(face = "italic"), # Italicize species names
+    legend.position = "none"
   )
 
 # print(top_species_plot)
@@ -627,18 +628,19 @@ ggsave(
 message("Saved combined habitat plot with per-habitat confidence-shaded bars and legends underneath.")
 
 # ----------------------------------------------------------------- #
-## Plot 2.4.2: Top Species by habitat ----
+## Plot 2.4.2: Top Species by habitat (Simplified - No Bins) ----
 # ----------------------------------------------------------------- #
-# small helper: generate n shades from very light to base colour
-make_shades <- function(base_col, n) {
-  # gradient from a very light grey to the base colour
-  grDevices::colorRampPalette(c("grey95", base_col))(n)
-}
-
 top_n_species <- 10
 habitats <- c("F","G","W")
 plots <- list()
-legends_grobs <- list()
+
+# Define custom colors to match the image
+habitat_colors <- c(
+  F = "#009E73",  # Forest Green
+  G = "#E69F00",  # Grassland Orange/Gold
+  W = "#56B4E9"   # Wetland Sky Blue
+)
+
 habitat_labels <- c(F = "Forest", G = "Grassland", W = "Wetland", O = "Other")
 
 for (h in habitats) {
@@ -651,163 +653,69 @@ for (h in habitats) {
   habitat_name <- habitat_labels[h]
   if (is.na(habitat_name)) habitat_name <- h
   
-  # top species within habitat
+  # 1. Identify Top Species
   top_species_names <- df_h %>%
     count(species_name, sort = TRUE) %>%
     slice_head(n = top_n_species) %>%
     pull(species_name)
   
+  # 2. Prepare Data
   top_species_data <- df_h %>%
     filter(species_name %in% top_species_names) %>%
-    count(species_name, confidence_bin, name = "n") %>%
-    group_by(species_name) %>%
-    mutate(total = sum(n)) %>%
-    ungroup() %>%
-    mutate(species = fct_reorder(species_name, n, .fun = sum)) %>%
-    dplyr::arrange(desc(total))
+    count(species_name, name = "n") %>% 
+    mutate(species_name = str_wrap(species_name, width = 12)) %>%
+    mutate(species = fct_reorder(species_name, n)) %>%
+    # Add a column for faceting to get the boxed title
+    mutate(habitat_facet = habitat_name)
   
-  # robust extraction + ascending ordering of confidence bins
-  bin_levels <- top_species_data %>%
-    distinct(confidence_bin) %>%
-    pull(confidence_bin) %>%
-    as.character() %>%
-    na.omit() %>%
-    unique() %>%
-    tibble(bin = .) %>%
-    mutate(
-      # extract a numeric lower bound: e.g. "0.70 - 0.85" -> 0.70, "> 0.95" -> 0.95
-      lower = case_when(
-        str_detect(bin, "^>\\s*[0-9.]") ~ as.numeric(str_replace(bin, "^>\\s*", "")),
-        str_detect(bin, "^[0-9.]") ~ as.numeric(str_extract(bin, "^[0-9.]+")),
-        TRUE ~ NA_real_
-      )
-    ) %>%
-    arrange(lower) %>%      # ascending: low -> high
-    pull(bin)
-  
-  if (length(bin_levels) == 0) {
-    message("No confidence bins for habitat ", h, " — skipping")
-    next
-  }
-  
-  # create shades for this habitat (darkest = base colour -> map to the highest-confidence bin)
-  shades <- make_shades(okabe_ito[h], length(bin_levels))
-  names(shades) <- bin_levels  # map names to bin values
-  
-  p <- ggplot(top_species_data, aes(x = species, y = n, fill = confidence_bin)) +
-    geom_col() +
+  # 3. Plot
+  p <- ggplot(top_species_data, aes(x = species, y = n)) +
+    # Use custom color fill with a thin black border
+    geom_col(fill = habitat_colors[h]) + 
     coord_flip(expand = FALSE) +
-    scale_fill_manual(values = shades, na.value = "grey60", drop = FALSE) +
+    # Use facet_grid to create the boxed title effect
+    facet_grid(~habitat_facet) +
     labs(
-      title = paste0(habitat_name),
-      x = "Species",
-      y = "Detections",
-      fill = "Confidence bin"
+      x = NULL, # No label for species names
+      y = "Number of detections" # Match image label
     ) +
-    theme_minimal(base_size = 11) +
+    # Use theme_bw for the boxed plot area and grid lines
+    theme_bw(base_size = 12) +
     theme(
-      axis.text.y = element_text(face = "italic", size = 8),
-      axis.title.x = element_text(size = 11, face = "bold"),
-      axis.title.y = element_text(size = 11, face = "bold"),
-      plot.title = element_text(face = "bold", size = 14, color = okabe_ito[h]),
-      plot.subtitle = element_text(size = 10),
-      plot.margin = margin(6, 6, 6, 6),
-      legend.position = "bottom",
-      legend.title = element_text(size = 9),
-      legend.text = element_text(size = 8),
-      legend.key.width = unit(0.9, "cm")
+      # Italicize species names
+      axis.text.y = element_text(face = "italic", color = "black", size = 14),
+      # fill = "white" removes the grey. color = "black" keeps the border box.
+      strip.background = ggplot2::element_rect(fill = "white", color = "black"), 
+      strip.text = ggplot2::element_text(face = "bold", size = 14),
+      axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5), # Angle 0 is usually readable for numbers
+      panel.grid.minor = ggplot2::element_blank(),
+      legend.position = "none"
     )
   
   # store plot
   plots[[h]] <- p
-  
-  # extract legend grob for this plot (we'll arrange these under the combined plot)
-  legends_grobs[[h]] <- cowplot::get_legend(p + theme(legend.position = "bottom",
-                                                      legend.direction = "vertical",
-                                                      legend.key.size = unit(0.6, "lines")))
 }
 
-# remove legends from the main plots (we'll add the legends row below)
-plots_no_legend <- lapply(plots, function(pp) pp + theme(legend.position = "none"))
-
-# combine the three panels in a single row using cowplot::plot_grid
-# ensure order F, G, W
-plot_row <- cowplot::plot_grid(
-  plots_no_legend[["F"]],
-  plots_no_legend[["G"]],
-  plots_no_legend[["W"]],
+# 4. Combine (Simple Grid)
+final_plot <- cowplot::plot_grid(
+  plots[["F"]],
+  plots[["G"]],
+  plots[["W"]],
   ncol = 3,
-  align = "hv",
-  rel_widths = c(1,1,1)
+  align = "hv"
 )
 
-# now create a single legend row by placing each legend grob side by side
-# convert grobs to ggdraw objects for consistent plotting
-legend_plots <- lapply(legends_grobs, function(g) {
-  if (is.null(g)) return(NULL)
-  cowplot::ggdraw(g)
-})
-
-# keep only non-null legends and align them
-
-# Check for nulls and remove (already done in your code)
-legend_plots <- legend_plots[!vapply(legend_plots, is.null, logical(1))]
-
-if (length(legend_plots) == 0) {
-  # no legends found — just save the plot_row
-  final_plot <- plot_row
-} else {
-  # --- FIX 1: Use do.call to pass the list elements as arguments ---
-  # We use the corrected function signature:
-  legend_row <- do.call(
-    cowplot::plot_grid, 
-    c(
-      plotlist = legend_plots, 
-      list(
-        ncol = length(legend_plots), 
-        rel_widths = rep(1, length(legend_plots))
-      )
-    )
-  )
-  
-  # Note: A simpler, more reliable way (if you don't need complex rel_widths) is:
-  # legend_row <- plot_grid(plotlist = legend_plots, ncol = length(legend_plots)) 
-  # Wait, the error suggests even 'plotlist' is unused. The simple fix is:
-  
-  
-  # --- FIX 1 (Revised and simpler): Use do.call directly on the plot list ---
-  legend_row <- do.call(
-    cowplot::plot_grid, 
-    c(
-      legend_plots, 
-      list(
-        ncol = length(legend_plots), 
-        # You may omit rel_widths if they are all equal
-        rel_widths = rep(1, length(legend_plots))
-      )
-    )
-  )
-  
-  # stack the main row and the legend row
-  final_plot <- cowplot::plot_grid(
-    plot_row, 
-    legend_row, 
-    ncol = 1, 
-    rel_heights = c(1, 0.18)
-  )
-}
-
-# save final figure
+# 5. Save
 ggsave(
-  filename = "Outputs/Figures/2_4_2_top_species_by_habitat_shaded.png",
+  filename = "Outputs/Figures/2_4_2_top_species_by_habitat_formatted.png",
   plot = final_plot,
-  width = 20,
-  height = 9,
+  width = 18, 
+  height = 6,
   dpi = 300,
-  units = "in"
+  units = "in",
+  bg = "white"
 )
-
-message("Saved combined habitat plot with per-habitat confidence-shaded bars and legends underneath.")
+message("Saved simplified habitat plot (solid bars, no bins).")
 
 # ----------------------------------------------------------------- #
 ## Plot 3: Detections per Recording (on *filtered* data) ----
