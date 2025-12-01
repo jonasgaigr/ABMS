@@ -1001,7 +1001,10 @@ data_scores <- data.frame(vegan::scores(nmds_result, display = "sites")) %>%
   )
 
 # Plot the NMDS results (this code is now correct)
-nmds_plot <- ggplot2::ggplot(data_scores, ggplot2::aes(x = NMDS1, y = NMDS2, color = habitat)) +
+nmds_plot <- ggplot2::ggplot(
+  data_scores, 
+  ggplot2::aes(x = NMDS1, y = NMDS2, color = habitat)
+  ) +
   ggplot2::geom_point(size = 3, alpha = 0.7) +
   ggplot2::stat_ellipse() + 
   scale_color_manual(
@@ -1011,10 +1014,13 @@ nmds_plot <- ggplot2::ggplot(data_scores, ggplot2::aes(x = NMDS1, y = NMDS2, col
     name   = "Habitat Type"
   ) +
   ggplot2::labs(
-    title = "Compositional Dissimilarity (NMDS)",
-    #subtitle = "Based on Bray-Curtis dissimilarity on raw counts",
-    caption = paste("Stress:", round(nmds_result$stress, 3))
-  ) +
+    title = paste0("Compositional Dissimilarity (NMDS)"), 
+    caption = paste0("Stress = ", round(nmds_result$stress, 3))
+    ) +
+  geom_vline(xintercept= 0, linetype = "dashed") +
+  geom_hline(yintercept= 0, linetype = "dashed") +
+  guides(shape = "none")+labs(color = "Habitat type") +
+  scale_fill_manual(values = c( "#009E73","#E69F00", "#56B4E9" )) +
   ggplot2::theme_minimal()
 
 print(nmds_plot)
