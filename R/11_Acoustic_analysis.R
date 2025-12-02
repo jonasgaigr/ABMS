@@ -150,7 +150,7 @@ confidence_histogram <- ggplot2::ggplot(acoustic_data, ggplot2::aes(x = confiden
     x = "Confidence Score",
     y = "Count of Detections"
   ) +
-  ggplot2::theme_minimal()
+  ggplot2::theme_bw()
 
 # You can print the plot to view it in RStudio
 # print(confidence_histogram)
@@ -207,7 +207,7 @@ top_species_plot <- ggplot2::ggplot(
     y = "Number of Detections",
     fill = "Confidence Bin" # Legend title
   ) +
-  ggplot2::theme_minimal() +
+  ggplot2::theme_bw() +
   ggplot2::theme(
     axis.text.y = ggplot2::element_text(face = "italic") # Italicize species names
   )
@@ -334,7 +334,7 @@ top_species_plot_rl <- ggplot(top_species_data_rl,
     fill = "Confidence bin"
   ) +
   scale_y_log10() +
-  theme_minimal() +
+  theme_bw() +
   theme(
     axis.text.y = element_text(face = "italic"),
     strip.text = element_text(face = "bold")
@@ -422,7 +422,7 @@ for (p in partners) {
       y = "Number of Detections",
       fill = "Confidence Bin"
     ) +
-    theme_minimal() +
+    theme_bw() +
     theme(
       axis.text.y = element_text(face = "italic")
     )
@@ -522,7 +522,7 @@ for (h in habitats) {
       y = "Detections",
       fill = "Confidence bin"
     ) +
-    theme_minimal(base_size = 11) +
+    theme_bw(base_size = 11) +
     theme(
       axis.text.y = element_text(face = "italic", size = 8),
       axis.title.x = element_text(size = 11, face = "bold"),
@@ -746,7 +746,7 @@ detections_per_file_hist <- ggplot2::ggplot(
     y = "Count of Recordings"
   ) +
   #ggplot2::scale_y_log10() + # Use a log scale if distribution is heavily skewed
-  ggplot2::theme_minimal()
+  ggplot2::theme_bw()
 
 # print(detections_per_file_hist)
 ggplot2::ggsave(
@@ -1021,7 +1021,7 @@ nmds_plot <- ggplot2::ggplot(
   geom_hline(yintercept= 0, linetype = "dashed") +
   guides(shape = "none")+labs(color = "Habitat type") +
   scale_fill_manual(values = c( "#009E73","#E69F00", "#56B4E9" )) +
-  ggplot2::theme_minimal()
+  ggplot2::theme_bw()
 
 print(nmds_plot)
 ggplot2::ggsave("Outputs/Figures/nmds_plot.png", nmds_plot, width = 8, height = 6)
@@ -1111,7 +1111,7 @@ dendro_plot <- ggplot2::ggplot() +
   ) +
   
   # Clean up the theme (minimal is a good start)
-  ggplot2::theme_minimal() +
+  ggplot2::theme_bw() +
   ggplot2::theme(
     # Remove the y-axis text, ticks, and gridlines (they are redundant)
     axis.text.y = ggplot2::element_blank(),
@@ -1313,7 +1313,7 @@ phenology_plot <- ggplot2::ggplot(prediction_data, ggplot2::aes(x = doy)) +
     x = "Day of Year (DOY)",
     y = "Predicted Detections / Hour"
   ) +
-  ggplot2::theme_minimal()
+  ggplot2::theme_bw()
 
 # Save the plot
 ggplot2::ggsave(
@@ -1866,7 +1866,7 @@ for (current_partner in partners_list) {
           x = "Day of Year (DOY)",
           y = "Predicted Detections / Hour"
         ) +
-        ggplot2::theme_minimal() +
+        ggplot2::theme_bw() +
         
         # --- Apply the enforced Y-Axis limit ---
         ggplot2::ylim(c(0, max_y_value)) +
