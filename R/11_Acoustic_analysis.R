@@ -1117,7 +1117,8 @@ dendro_plot <- ggplot2::ggplot() +
     axis.text.y = ggplot2::element_blank(),
     axis.ticks.y = ggplot2::element_blank(),
     panel.grid.major.y = ggplot2::element_blank(),
-    panel.grid.minor.y = ggplot2::element_blank()
+    panel.grid.minor.y = ggplot2::element_blank(),
+    legend.position = "none"
   )
 
 # ----------------------------------------------------------------- #
