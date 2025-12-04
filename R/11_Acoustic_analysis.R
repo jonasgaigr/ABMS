@@ -1024,7 +1024,7 @@ nmds_plot <- ggplot2::ggplot(
   ggplot2::theme_bw()
 
 print(nmds_plot)
-ggplot2::ggsave("Outputs/Figures/nmds_plot.png", nmds_plot, width = 8, height = 6)
+ggplot2::ggsave("Outputs/Figures/nmds_plot.png", nmds_plot, height = 12, width = 15, units = "cm")
 # ----------------------------------------------------------------- #
 ## Deployment Similarity Dendrogram (ggplot2 solution) ----
 # (Requires 'vegan', 'ggdendro', 'ggplot2', 'dplyr')
