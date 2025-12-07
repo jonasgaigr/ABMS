@@ -1,0 +1,19 @@
+name,site_type,n,percent
+Alpine Bio-geographical Region,forest,2,25
+Alpine Bio-geographical Region,grassland,4,50
+Alpine Bio-geographical Region,wetland,2,25
+Atlantic Bio-geographical Region,forest,6,33.33333333333333
+Atlantic Bio-geographical Region,grassland,6,33.33333333333333
+Atlantic Bio-geographical Region,wetland,6,33.33333333333333
+Boreal Bio-geographical Region,forest,2,33.33333333333333
+Boreal Bio-geographical Region,grassland,2,33.33333333333333
+Boreal Bio-geographical Region,wetland,2,33.33333333333333
+Continental Bio-geographical Region,forest,10,38.46153846153847
+Continental Bio-geographical Region,grassland,8,30.76923076923077
+Continental Bio-geographical Region,wetland,8,30.76923076923077
+Mediterranean Bio-geographical Region,forest,2,33.33333333333333
+Mediterranean Bio-geographical Region,grassland,2,33.33333333333333
+Mediterranean Bio-geographical Region,wetland,2,33.33333333333333
+Pannonian Bio-geographical Region,forest,2,33.33333333333333
+Pannonian Bio-geographical Region,grassland,2,33.33333333333333
+Pannonian Bio-geographical Region,wetland,2,33.33333333333333
