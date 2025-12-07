@@ -64,6 +64,7 @@ map_europe_2025 <-
   ggplot() +
   # --- Base Map ---
   geom_sf(data = europe_ext, fill = "gray98", color = "gray70", size = 0.3) +
+  geom_sf(data = biogeoregions, fill = NA, color = "gray70", size = 0.3) +
   geom_sf(data = lakes, fill = "lightblue", color = NA, alpha = 0.4) +
   geom_sf(data = rivers, color = "lightblue", size = 0.2, alpha = 0.6) +
   
