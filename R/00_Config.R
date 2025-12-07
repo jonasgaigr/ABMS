@@ -130,6 +130,12 @@ europe <- rnaturalearth::ne_countries(
     continent == "Europe"
   )
 
+# Biogeographic regions
+biogeoregions <- 
+  sf::st_read(
+    "Data/Inputs/BiogeoRegions2016.shp"
+  )
+
 # --- Load all countries globally, not just Europe ---
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
