@@ -1411,7 +1411,7 @@ season_filtered_data <- data_presence_per_file %>%
 valid_countries <- season_filtered_data %>%
   dplyr::group_by(partner, habitat) %>%
   dplyr::summarise(recording_days = dplyr::n_distinct(doy)) %>% # Changed to count distinct DOYs
-  dplyr::filter(recording_days >= 105) %>% # The Constraint
+  dplyr::filter(recording_days >= 80) %>% # The Constraint
   dplyr::group_by(partner) %>%
   dplyr::summarise(valid_habitat = dplyr::n_distinct(habitat)) %>%
   dplyr::filter(valid_habitat >= 2) %>%
