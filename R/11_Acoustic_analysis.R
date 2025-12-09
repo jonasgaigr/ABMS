@@ -757,6 +757,32 @@ ggplot2::ggsave(
 )
 
 # ----------------------------------------------------------------- #
+## Species list by site ----
+# ----------------------------------------------------------------- #
+
+species_list_deployment <- 
+  data_filtered %>%
+  dplyr::group_by(partner, deployment, species) %>%
+  dplyr::reframe(
+    mean_confidence = mean(confidence, na.rm = TRUE),
+    median_confidence = median(confidence, na.rm = TRUE),
+    min_confidence = min(confidence, na.rm = TRUE),
+    max_confidence = max(confidence, na.rm = TRUE),
+    sd_confidence = sd(confidence, na.rm = TRUE)
+    )
+
+species_list_habitat <- 
+  data_filtered %>%
+  dplyr::group_by(partner, habitat, species) %>%
+  dplyr::reframe(
+    mean_confidence = mean(confidence, na.rm = TRUE),
+    median_confidence = median(confidence, na.rm = TRUE),
+    min_confidence = min(confidence, na.rm = TRUE),
+    max_confidence = max(confidence, na.rm = TRUE),
+    sd_confidence = sd(confidence, na.rm = TRUE)
+  )
+
+# ----------------------------------------------------------------- #
 ## Summary Table by Group (e.g., deployment) ----
 # ----------------------------------------------------------------- #
 
