@@ -1541,7 +1541,7 @@ model_input_data <- detections_by_day %>%
 valid_countries <- model_input_data %>%
   dplyr::group_by(partner, habitat) %>%
   dplyr::summarise(recording_days = dplyr::n_distinct(doy)) %>% # Changed to count distinct DOYs
-  dplyr::filter(recording_days >= 105) %>% # The Constraint
+  dplyr::filter(recording_days >= 80) %>% # The Constraint
   dplyr::group_by(partner) %>%
   dplyr::summarise(valid_habitat = dplyr::n_distinct(habitat)) %>%
   dplyr::filter(valid_habitat >= 2) %>%
@@ -1619,7 +1619,7 @@ plot_predictions <- final_modeling_data %>%
 # Define the North-to-South order
 # (Update this list with the actual countries in your dataset)
 ns_order <- c("Finland", "Sweden", "Denmark", "Netherlands", "Belgium",
-              "Slovakia", "Croatia", "Bulgaria", "Spain")
+              "Slovakia", "Croatia", "Bulgaria", "Catalonia")
 
 # Update the factor levels in the data
 plot_predictions$country <- factor(plot_predictions$country, levels = ns_order)
