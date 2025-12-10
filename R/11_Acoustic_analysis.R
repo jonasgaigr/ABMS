@@ -1619,7 +1619,7 @@ plot_predictions <- final_modeling_data %>%
 # Define the North-to-South order
 # (Update this list with the actual countries in your dataset)
 ns_order <- c("Finland", "Sweden", "Denmark", "Netherlands", "Belgium",
-              "Slovakia", "Croatia", "Bulgaria", "Catalonia")
+              "Czechia", "Slovakia", "Bolzano", "Croatia", "Bulgaria", "Catalonia")
 
 # Update the factor levels in the data
 plot_predictions$country <- factor(plot_predictions$country, levels = ns_order)
