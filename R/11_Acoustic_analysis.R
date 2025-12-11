@@ -1554,6 +1554,13 @@ final_modeling_data <- model_input_data %>%
   dplyr::filter(partner %in% valid_countries) %>%
   dplyr::filter(doy >= 120 & doy <= 260)
 
+
+final_modeling_data$partner_habitat <- 
+  interaction(
+    final_modeling_data$partner, 
+    final_modeling_data$habitat, 
+    drop = TRUE)
+
 # -----------------------------------------------------------------#
 # 4. ITERATIVE GAM MODELING (High Flexibility)
 # -----------------------------------------------------------------#
@@ -1570,11 +1577,12 @@ fit_gam_phenology <- function(df) {
     # k = 50: High basis dimension to capture fine-scale variation (weekly peaks)
     
     m <- mgcv::gam(
-      total_detections ~ s(doy, bs = "tp", k = 50), 
+      total_detections ~ 
+        s(doy, bs = "tp", k = 50),
       data = df,
       family = mgcv::nb(),  # Negative Binomial (handles overdispersion)
       offset = log(effort_for_offset),
-      method = "REML" 
+      method = "fREML" 
     )
     
     # 2. Predict for Standardized Effort
