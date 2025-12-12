@@ -63,8 +63,8 @@ data_pie <- final_plot_data %>%
 map_europe_2025 <- 
   ggplot() +
   # --- Base Map ---
-    geom_sf(data = europe_ext, fill = "gray98", color = "gray65", size = 0.3) +
-  geom_sf(data = biogeoregions, fill = NA, color = "gray75", size = 0.2) +
+  geom_sf(data = europe_ext, fill = "gray98", color = "gray65", size = 0.3) +
+  #geom_sf(data = biogeoregions, aes(fill = as.factor(name)), alpha = 0.2, color = "gray75", size = 0.2) +
   geom_sf(data = lakes, fill = "lightblue", color = NA, alpha = 0.4) +
   geom_sf(data = rivers, color = "lightblue", size = 0.2, alpha = 0.6) +
   
@@ -131,6 +131,80 @@ map_europe_2025
 ggsave(
   filename = "Outputs/Maps/Map_Europe_Extended_2025_pie.png",
   plot = map_europe_2025,
+  width = 12, height = 8, dpi = 300
+)
+
+map_europe_biogeo_2025 <- 
+  ggplot() +
+  # --- Base Map ---
+  #geom_sf(data = europe_ext, fill = "gray98", color = "gray65", size = 0.3) +
+  geom_sf(data = biogeoregions, aes(fill = as.factor(name)), alpha = 0.2, color = "gray75", size = 0.2) +
+  geom_sf(data = lakes, fill = "lightblue", color = NA, alpha = 0.4) +
+  geom_sf(data = rivers, color = "lightblue", size = 0.2, alpha = 0.6) +
+  
+  # --- LAYER 1: Solo Clusters (Standard Points) ---
+  geom_point(
+    data = data_solo,
+    aes(x = X_center, y = Y_center, fill = main_type),
+    shape = 21,      
+    color = NA,       # <--- Removes the white border
+    size = 1.8,       # <--- Smaller size (previously 3.5)
+    alpha = 0.9
+  ) +
+  
+  # --- LAYER 2: Overlap Clusters (Pie Charts) ---
+  geom_scatterpie(
+    data = data_pie,
+    aes(x = X_center, y = Y_center),
+    cols = habitat_cols,
+    pie_scale = 0.8,  # <--- Smaller scale (previously 1.5)
+    color = NA,       # <--- Removes lines between slices
+    alpha = 0.9
+  ) +
+  
+  # --- Shared Scales & Theme ---
+  scale_fill_manual(
+    values = okabe_ito,
+    breaks = c("F", "G", "W", "O"),
+    labels = c("forest", "grassland", "wetland", "other"),
+    name   = "Habitat Type"
+  ) +
+  
+  # Ensure you are still using the Metric CRS from the previous step
+  coord_sf(
+    xlim = c(locations_bbox["xmin"], locations_bbox["xmax"]),
+    ylim = c(locations_bbox["ymin"], locations_bbox["ymax"]),
+    expand = FALSE
+  ) +
+  
+  theme_minimal(base_family = "Roboto") +
+  theme(
+    panel.background  = element_rect(fill = "#EAF2F8", color = NA),
+    panel.grid.major  = element_line(color = "white"),
+    plot.title        = element_text(size = 16, face = "bold", hjust = 0.5),
+    # Legend anchored inside the map near the right edge
+    legend.position   = c(1, 0.55),      # inside, vertical middle
+    legend.justification = c(1, 0.5),      # right-middle of legend box aligns at x=0.95
+    legend.background = element_rect(fill = alpha("white", 1), color = NA),
+    legend.key.size   = unit(1.5, "lines"),  # ×2
+    legend.text       = element_text(size = 20),  # ×2
+    legend.title      = element_text(size = 22, face = "bold")  # ×2
+  ) +
+  
+  guides(color = guide_legend(override.aes = list(size = 4.2, alpha = 1))) +
+  
+  labs(
+    title = "Automated Biodiversity Monitoring Stations Across Europe – 2025",
+    x = NULL,
+    y = NULL
+  )
+
+map_europe_2025
+
+### --- Save the European biogeo map ----
+ggsave(
+  filename = "Outputs/Maps/Map_Europe_Biogeo_Extended_2025_pie.png",
+  plot = map_europe_biogeo_2025,
   width = 12, height = 8, dpi = 300
 )
 
