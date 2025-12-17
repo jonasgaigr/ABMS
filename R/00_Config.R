@@ -23,6 +23,7 @@ packages <- c(
   "ggrepel",
   "ggforce",
   "ggspatial",
+  "gratia",
   "rnaturalearth",
   "rnaturalearthdata",
   "scatterpie",
