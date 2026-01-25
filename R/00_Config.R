@@ -7,12 +7,12 @@ packages <- c(
   "tidyverse",
   "broom",
   "janitor",
-  "sf", 
+  "sf",
   "dendextend",
-  "sp", 
-  "proj4", 
+  "sp",
+  "proj4",
   "openxlsx",
-  "fuzzyjoin", 
+  "fuzzyjoin",
   "remotes",
   "ggtext",
   "vegan",
@@ -62,10 +62,11 @@ locations <- readr::read_csv(
   ) %>%
   sf::st_as_sf(
     coords = c(
-      "LON_4326", 
+      "LON_4326",
       "LAT_4326"
-    ), 
-    crs = 4326)
+    ),
+    crs = 4326
+  )
 
 deploy_info <- readr::read_csv(
   "Data/Inputs/deployment.csv",
@@ -86,7 +87,7 @@ deploy_info <- readr::read_csv(
       type_code == "W" ~ "wetland",
       type_code == "O" ~ "other"
     )
-  ) 
+  )
 
 locations_2025 <-
   locations %>%
@@ -110,29 +111,29 @@ locations_comb <- locations_2025 %>%
 locations_bbox <-
   locations_2025 %>%
   sf::st_bbox() %>%
-  sf::st_as_sfc() %>%        
+  sf::st_as_sfc() %>%
   sf::st_buffer(125000) %>%
   sf::st_bbox()
 
 target_bbox <-
   locations_2025 %>%
   sf::st_bbox() %>%
-  sf::st_as_sfc() %>%        
+  sf::st_as_sfc() %>%
   sf::st_buffer(1500000) %>%
   sf::st_bbox()
 
 # Europe polygons
 europe <- rnaturalearth::ne_countries(
-  continent = "Europe", 
-  scale = "medium",   
+  continent = "Europe",
+  scale = "medium",
   returnclass = "sf"
-  ) %>%
+) %>%
   dplyr::filter(
     continent == "Europe"
   )
 
 # Biogeographic regions
-biogeoregions <- 
+biogeoregions <-
   sf::st_read(
     "Data/Inputs/BiogeoRegions2016.shp"
   )
@@ -151,17 +152,17 @@ countries_europe_extended <- c(
   "Russia", "Morocco", "Algeria", "Tunisia", "Libya", "Egypt", "Republic of Serbia"
 )
 
-europe_ext <- world %>% 
+europe_ext <- world %>%
   filter(admin %in% countries_europe_extended)
 
 # Major lakes and rivers for context
-lakes  <- ne_download(scale = "large", type = "lakes", category = "physical", returnclass = "sf")
+lakes <- ne_download(scale = "large", type = "lakes", category = "physical", returnclass = "sf")
 rivers <- ne_download(scale = "large", type = "rivers_lake_centerlines", category = "physical", returnclass = "sf")
 
 # Major cities (optional context)
 cities <- ne_download(scale = 10, type = "populated_places", category = "cultural", returnclass = "sf") %>%
   st_transform(crs = 4326) %>%
-  filter(POP_MAX > 1000000)   # label only big cities
+  filter(POP_MAX > 1000000) # label only big cities
 
 # Extract coordinates for city labels
 cities_coords <- cities %>%
@@ -170,31 +171,33 @@ cities_coords <- cities %>%
     lat = st_coordinates(.)[, 2]
   )
 
-crs_europe <- 3035  # Lambert Azimuthal Equal Area
-europe  <- st_transform(europe, crs_europe)
-europe_ext  <- st_transform(europe_ext, crs_europe)
-lakes   <- st_transform(lakes, crs_europe)
-rivers  <- st_transform(rivers, crs_europe)
-cities  <- st_transform(cities, crs_europe)
-locations_2025   <- st_transform(locations_2025, crs_europe)
-locations_2024   <- st_transform(locations_2024, crs_europe)
-locations_comb   <- st_transform(locations_comb, crs_europe)
+crs_europe <- 3035 # Lambert Azimuthal Equal Area
+europe <- st_transform(europe, crs_europe)
+europe_ext <- st_transform(europe_ext, crs_europe)
+lakes <- st_transform(lakes, crs_europe)
+rivers <- st_transform(rivers, crs_europe)
+cities <- st_transform(cities, crs_europe)
+locations_2025 <- st_transform(locations_2025, crs_europe)
+locations_2024 <- st_transform(locations_2024, crs_europe)
+locations_comb <- st_transform(locations_comb, crs_europe)
 locations_bbox <- st_transform(locations_bbox, crs_europe)
-europe_bbox <- st_bbox(europe_ext)  # crs already 3035
+europe_bbox <- st_bbox(europe_ext) # crs already 3035
 target_bbox <- st_transform(target_bbox, crs_europe)
 
-target_countries <- c("Ireland", "Spain", "Croatia", "Bulgaria", "Czechia", 
-                      "Finland", "Slovakia", "Netherlands", "Italy", "Belgium",
-                      "Denmark", "Sweden")
+target_countries <- c(
+  "Ireland", "Spain", "Croatia", "Bulgaria", "Czechia",
+  "Finland", "Slovakia", "Netherlands", "Italy", "Belgium",
+  "Denmark", "Sweden"
+)
 
 # Okabe-Ito colourblind-friendly palette (works for up to 8 categories)
 okabe_ito <- setNames(
-  c("#009E73","#E69F00", "#56B4E9", "#D55E00"),
+  c("#009E73", "#E69F00", "#56B4E9", "#D55E00"),
   c("F", "G", "W", "O")
 )
 
 ## Red Lists ----
-red_list <- 
+red_list <-
   readr::read_csv(
     "Data/Inputs/European_Red_List_2024_December_fixed.csv"
   )
@@ -253,13 +256,13 @@ if (length(csv_file_name) == 0) {
 # *without* fully extracting it to disk.
 # readr::read_csv() can read directly from this connection.
 message("Reading CSV data...")
-acoustic_data_raw <- 
+acoustic_data_raw <-
   readr::read_csv(
     unz(temp_zip_path, csv_file_name)
-    ) 
+  )
 message("Successfully read data.")
 
-acoustic_data <- 
+acoustic_data <-
   acoustic_data_raw %>%
   dplyr::mutate(
     species_name = stringr::str_extract(species, "^[^_]+"),
@@ -272,8 +275,8 @@ acoustic_data <-
         substr(time_raw, 1, 2), ":",
         substr(time_raw, 3, 4), ":",
         substr(time_raw, 5, 6)
-        )
-      ),
+      )
+    ),
     datetime = ymd_hms(str_c(date_raw, time_raw))
   ) %>%
   dplyr::select(-date_raw, -time_raw) %>%
@@ -285,7 +288,7 @@ acoustic_data <-
         europeanRegionalRedListCategory
       ),
     by = c("species_name" = "scientificName")
-  ) 
+  )
 
 # Clean up the temporary zip file
 file.remove(temp_zip_path)
@@ -304,7 +307,7 @@ thresholds <- readr::read_csv(
   dplyr::select(
     Species, Samplesize, Countries,
     Threshold_090, F_090, Threshold_095, F_095
-    )
+  )
 
 # ----------------------------------------------------------------- #
 ## Load partner-country link ----
