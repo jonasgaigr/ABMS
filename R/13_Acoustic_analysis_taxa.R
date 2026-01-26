@@ -2,7 +2,7 @@
 ## Species list by site ----
 # ----------------------------------------------------------------- #
 
-species_list_deployment <- 
+species_list_deployment <-
   data_filtered %>%
   dplyr::group_by(partner, deployment, species) %>%
   dplyr::reframe(
@@ -12,9 +12,9 @@ species_list_deployment <-
     max_confidence = max(confidence, na.rm = TRUE),
     sd_confidence = sd(confidence, na.rm = TRUE),
     n_recordings = n()
-    )
+  )
 
-species_list_habitat <- 
+species_list_habitat <-
   data_filtered %>%
   dplyr::group_by(partner, habitat, species) %>%
   dplyr::reframe(
@@ -47,4 +47,3 @@ readr::write_csv(
   paste0(file_species_list_habitat, ".csv")
 )
 message("Saved: ", paste0(file_species_list_habitat, ".csv"))
-
