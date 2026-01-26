@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------- #
-## Rarefaction and Extrapolation ---- 
+## Rarefaction and Extrapolation ----
 # ----------------------------------------------------------------- #
 # ----------------------------------------------------------------- #
 # Create Species-Site Matrix (MODIFIED)
@@ -24,7 +24,7 @@ species_counts_wide <- data_filtered_unique %>%
   dplyr::group_by(partner_deployment, species) %>%
   dplyr::summarise(
     n = dplyr::n(),
-    .groups = 'drop'
+    .groups = "drop"
   ) %>%
   # Convert long to wide
   tidyr::pivot_wider(
