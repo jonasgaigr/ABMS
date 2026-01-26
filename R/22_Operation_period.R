@@ -10,13 +10,13 @@ deploy <- deploy_info %>%
   mutate(
     partner = stringr::str_trim(partner),
     code = stringr::str_trim(code),
-    device_code = stringr::str_trim(device_code),   # this is the device TYPE column (e.g. "Song Meter Mini 2")
+    device_code = stringr::str_trim(device_code), # this is the device TYPE column (e.g. "Song Meter Mini 2")
     device_id = stringr::str_trim(device_id),
     # convert blanks or obvious formulas to NA
     deployment_date = na_if(deployment_date, ""),
-    retrieval_date   = na_if(retrieval_date, ""),
+    retrieval_date = na_if(retrieval_date, ""),
     deployment_date = if_else(deployment_date %in% c("NA", "na"), NA_character_, deployment_date),
-    retrieval_date   = if_else(retrieval_date   %in% c("NA", "na"), NA_character_, retrieval_date)
+    retrieval_date = if_else(retrieval_date %in% c("NA", "na"), NA_character_, retrieval_date)
   ) %>%
   # parse dates in d/m/Y (handles most of the input you showed)
   mutate(
@@ -32,9 +32,9 @@ deploy <- deploy_info %>%
   mutate(
     device_label = paste0(device_id, " — ", coalesce(device_code, "")),
     device_label = str_squish(device_label)
-  )# %>%
-  # drop rows without device_id at all (optional)
-  #filter(!is.na(device_id) & device_id != "")
+  ) # %>%
+# drop rows without device_id at all (optional)
+# filter(!is.na(device_id) & device_id != "")
 
 # ---------- Order devices so each partner facet shows the most recent on top ----------
 # We'll create a combined id (partner|device_label) and set factor levels by partner & deployment date
@@ -71,8 +71,8 @@ p_gantt <- ggplot(deploy_for_plot) +
   ) +
   theme_minimal(base_size = 12) +
   theme(
-    axis.text.y = element_text(size = 8),        # device labels
-    strip.text = element_text(face = "bold"),    # partner facet titles
+    axis.text.y = element_text(size = 8), # device labels
+    strip.text = element_text(face = "bold"), # partner facet titles
     panel.grid.major.y = element_blank(),
     legend.position = "bottom"
   )
@@ -82,10 +82,10 @@ print(p_gantt)
 
 # ---------- Filter only AMI devices ----------
 deploy_for_plot_ami <- deploy_for_plot %>%
-  filter(device_code == "AMI")   # if your AMI type has a different spelling, change here
+  filter(device_code == "AMI") # if your AMI type has a different spelling, change here
 
 date_min <- min(deploy_for_plot_ami$deployment_date, na.rm = TRUE)
-date_max <- max(deploy_for_plot_ami$retrieval_date,  na.rm = TRUE)
+date_max <- max(deploy_for_plot_ami$retrieval_date, na.rm = TRUE)
 
 # add ±7 days
 date_min <- date_min - lubridate::days(14)
@@ -130,18 +130,18 @@ height_inches <- n_devices * 0.2
 ggsave(
   filename = "Outputs/Plots/ami_deployments.png",
   plot = p_gantt_ami,
-  width = 14,              # adjust if needed
-  height = height_inches,  # scales automatically
+  width = 14, # adjust if needed
+  height = height_inches, # scales automatically
   dpi = 300
 )
 
 
 # ---------- Filter only acoustic devices ----------
 deploy_for_plot_acoustic <- deploy_for_plot %>%
-  filter(grepl("Mini", device_code))   # if your AMI type has a different spelling, change here
+  filter(grepl("Mini", device_code)) # if your AMI type has a different spelling, change here
 
 date_min <- min(deploy_for_plot_acoustic$deployment_date, na.rm = TRUE)
-date_max <- max(deploy_for_plot_acoustic$retrieval_date,  na.rm = TRUE)
+date_max <- max(deploy_for_plot_acoustic$retrieval_date, na.rm = TRUE)
 
 # add ±7 days
 date_min <- date_min - lubridate::days(14)
@@ -186,7 +186,7 @@ height_inches <- n_devices * 0.1
 ggsave(
   filename = "Outputs/Plots/acoustic_deployments.png",
   plot = p_gantt_acoustic,
-  width = 14,              # adjust if needed
-  height = height_inches,  # scales automatically
+  width = 14, # adjust if needed
+  height = height_inches, # scales automatically
   dpi = 300
 )
