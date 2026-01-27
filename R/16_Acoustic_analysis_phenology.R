@@ -8,23 +8,23 @@
 # This is the recording log I asked about. You MUST provide this.
 # It should have a complete list of ALL audio files deployed.
 # We will create a hypothetical example.
-# 
+#
 # *** REPLACE 'recording_metadata' WITH YOUR ACTUAL FILE LIST ***
-# 
+#
 # It needs 'sourcefileid', 'starttime', 'endtime', 'deployment', and 'year'.
 # For this example, we'll assume the detections file ('data_filtered')
 # *mistakenly* contains all files. THIS IS A BAD ASSUMPTION.
-# 
+#
 # -----------------------------------------------------------------#
-# !! DANGER !! 
-# The code below will ONLY work correctly if 'data_filtered' 
+# !! DANGER !!
+# The code below will ONLY work correctly if 'data_filtered'
 # *also* contains files with ZERO detections.
-# 
+#
 # If your 'data_filtered' only has successful detections,
 # you MUST load a different file for 'recording_metadata'.
-# 
+#
 # For now, we proceed assuming you have a file 'recording_metadata'
-# 
+#
 # -----------------------------------------------------------------#
 
 # Let's *pretend* 'data' (your original file) is the recording log.
@@ -44,7 +44,7 @@ target_species <- top_species_names[1]
 
 # Filter detections for *only* our target species
 species_detections <- data_filtered %>%
-  #dplyr::filter(partner == "czech_republic") %>%
+  # dplyr::filter(partner == "czech_republic") %>%
   dplyr::filter(species == target_species)
 
 # -----------------------------------------------------------------#
@@ -125,7 +125,7 @@ message("Generating phenology plot...")
 doy_sequence <- seq(min(phenology_data$doy), max(phenology_data$doy), by = 1)
 prediction_data <- data.frame(
   doy = doy_sequence,
-  effort_for_offset = 1  # Predict the rate per *1 hour* of effort
+  effort_for_offset = 1 # Predict the rate per *1 hour* of effort
 )
 
 # B) Get predictions from the model
@@ -239,7 +239,7 @@ season_filtered_data <- data_presence_per_file %>%
     .,
     partner_country,
     by = c("partner" = "partner")
-  ) 
+  )
 
 # A. Identify Countries with enough data
 # We count distinct DOYs to ensure timeline coverage
@@ -258,9 +258,9 @@ print(paste("Countries included:", paste(valid_countries, collapse = ", ")))
 plot_data <- season_filtered_data %>%
   dplyr::filter(partner %in% valid_countries) %>%
   dplyr::filter(habitat %in% c("F", "G", "W")) %>%
-  # IMPORTANT: Group by 'doy' now, not 'date'. 
+  # IMPORTANT: Group by 'doy' now, not 'date'.
   # This combines multiple years into one seasonal curve.
-  dplyr::group_by(country, habitat, doy) %>% 
+  dplyr::group_by(country, habitat, doy) %>%
   dplyr::reframe(
     total_detections = dplyr::n()
   )
@@ -276,46 +276,48 @@ habitat_labeller <- c(
 
 # Define the North-to-South order
 # (Update this list with the actual countries in your dataset)
-ns_order <- c("Finland", "Sweden", "Denmark", "Netherlands", "Belgium",
-              "Slovakia", "Croatia", "Bulgaria", "Spain")
+ns_order <- c(
+  "Finland", "Sweden", "Denmark", "Netherlands", "Belgium",
+  "Slovakia", "Croatia", "Bulgaria", "Spain"
+)
 
 # Update the factor levels in the data
 plot_data$country <- factor(plot_data$country, levels = ns_order)
 
 phenology_plot <- ggplot2::ggplot(plot_data, ggplot2::aes(x = doy, y = total_detections)) +
-  
+
   # Apply Color and Fill based on Habitat
   ggplot2::geom_smooth(
-    ggplot2::aes(color = habitat, fill = habitat), 
-    method = "loess", 
-    span = 0.3, 
-    se = TRUE, 
+    ggplot2::aes(color = habitat, fill = habitat),
+    method = "loess",
+    span = 0.3,
+    se = TRUE,
     alpha = 0.3
   ) +
-  
+
   # Apply the Okabe-Ito Palette
   ggplot2::scale_color_manual(values = okabe_ito) +
   ggplot2::scale_fill_manual(values = okabe_ito) +
-  
+
   # Facet Grid
   ggplot2::facet_grid(
-    rows = ggplot2::vars(country), 
-    cols = ggplot2::vars(habitat), 
+    rows = ggplot2::vars(country),
+    cols = ggplot2::vars(habitat),
     scales = "free_y",
-    labeller = ggplot2::labeller(habitat = habitat_labeller) 
+    labeller = ggplot2::labeller(habitat = habitat_labeller)
   ) +
-  
+
   # Formatting
   ggplot2::theme_bw() +
   ggplot2::labs(
-    #title = "Relative Bird Activity",
+    # title = "Relative Bird Activity",
     y = "Relative Activity Index",
     x = "Day of Year"
   ) +
   ggplot2::theme(
     # --- CHANGE 2: Remove grey background ---
     # fill = "white" removes the grey. color = "black" keeps the border box.
-    strip.background = ggplot2::element_rect(fill = "white", color = "black"), 
+    strip.background = ggplot2::element_rect(fill = "white", color = "black"),
     strip.text = ggplot2::element_text(face = "bold", size = 10),
     axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5), # Angle 0 is usually readable for numbers
     panel.grid.minor = ggplot2::element_blank(),
@@ -341,7 +343,7 @@ seasonal_data <- data_presence_per_file %>%
 
 # B. Calculate EFFORT (Duration in Hours)
 # This calculation remains unchanged as it counts all recording duration
-effort_by_day <- seasonal_data_effort %>% 
+effort_by_day <- seasonal_data_effort %>%
   dplyr::distinct(sourcefileid, partner, deployment, habitat, starttime, endtime, date) %>%
   dplyr::mutate(duration_hours = (endtime - starttime) / 3600) %>%
   dplyr::group_by(partner, habitat, deployment, date) %>%
@@ -390,58 +392,63 @@ final_modeling_data <- model_input_data %>%
   dplyr::filter(doy >= 120 & doy <= 260)
 
 
-final_modeling_data$partner_habitat <- 
+final_modeling_data$partner_habitat <-
   interaction(
-    final_modeling_data$partner, 
-    final_modeling_data$habitat, 
-    drop = TRUE)
+    final_modeling_data$partner,
+    final_modeling_data$habitat,
+    drop = TRUE
+  )
 
 # -----------------------------------------------------------------#
 # 4. ITERATIVE GAM MODELING (High Flexibility)
 # -----------------------------------------------------------------#
 
 fit_gam_phenology <- function(df) {
-  
   # Safety check
-  if(nrow(df) < 15) return(NULL)
-  
-  tryCatch({
-    # 1. Fit the Model - HIGH FLEXIBILITY VERSION
-    # bs = "ad" (Adaptive smooth): Allows the curve to be very wiggly in active periods
-    # and smoother in quiet periods. Ideally suited for phenology peaks.
-    # k = 50: High basis dimension to capture fine-scale variation (weekly peaks)
-    
-    m <- mgcv::gam(
-      total_detections ~ 
-        s(doy, bs = "tp", k = 50),
-      data = df,
-      family = mgcv::nb(),  # Negative Binomial (handles overdispersion)
-      offset = log(effort_for_offset),
-      method = "fREML" 
-    )
-    
-    # 2. Predict for Standardized Effort
-    pred_grid <- data.frame(
-      doy = seq(min(df$doy), max(df$doy), length.out = 100),
-      effort_for_offset = 0.2 # Standardize to 1 recording per 5 mins
-    )
-    
-    preds <- predict(m, newdata = pred_grid, type = "link", se.fit = TRUE)
-    
-    # 3. Return formatted results
-    pred_grid %>%
-      dplyr::mutate(
-        fit_link = preds$fit,
-        se_link = preds$se.fit,
-        predicted_count = exp(fit_link),
-        lower_ci = exp(fit_link - 1.96 * se_link),
-        upper_ci = exp(fit_link + 1.96 * se_link),
-        date = as.Date(doy, origin = paste0(lubridate::year(Sys.Date()), "-01-01"))
-      )
-  }, error = function(e) {
-    message("GAM Fit Error: ", e$message)
+  if (nrow(df) < 15) {
     return(NULL)
-  })
+  }
+
+  tryCatch(
+    {
+      # 1. Fit the Model - HIGH FLEXIBILITY VERSION
+      # bs = "ad" (Adaptive smooth): Allows the curve to be very wiggly in active periods
+      # and smoother in quiet periods. Ideally suited for phenology peaks.
+      # k = 50: High basis dimension to capture fine-scale variation (weekly peaks)
+
+      m <- mgcv::gam(
+        total_detections ~
+          s(doy, bs = "tp", k = 50),
+        data = df,
+        family = mgcv::nb(), # Negative Binomial (handles overdispersion)
+        offset = log(effort_for_offset),
+        method = "fREML"
+      )
+
+      # 2. Predict for Standardized Effort
+      pred_grid <- data.frame(
+        doy = seq(min(df$doy), max(df$doy), length.out = 100),
+        effort_for_offset = 0.2 # Standardize to 1 recording per 5 mins
+      )
+
+      preds <- predict(m, newdata = pred_grid, type = "link", se.fit = TRUE)
+
+      # 3. Return formatted results
+      pred_grid %>%
+        dplyr::mutate(
+          fit_link = preds$fit,
+          se_link = preds$se.fit,
+          predicted_count = exp(fit_link),
+          lower_ci = exp(fit_link - 1.96 * se_link),
+          upper_ci = exp(fit_link + 1.96 * se_link),
+          date = as.Date(doy, origin = paste0(lubridate::year(Sys.Date()), "-01-01"))
+        )
+    },
+    error = function(e) {
+      message("GAM Fit Error: ", e$message)
+      return(NULL)
+    }
+  )
 }
 
 message("Fitting High-Flexibility GAMs (Adaptive Spline, k=50)...")
@@ -457,12 +464,14 @@ plot_predictions <- final_modeling_data %>%
     .,
     partner_country,
     by = c("partner" = "partner")
-  ) 
+  )
 
 # Define the North-to-South order
 # (Update this list with the actual countries in your dataset)
-ns_order <- c("Finland", "Sweden", "Denmark", "Netherlands", "Flanders",
-              "Czechia", "Slovakia", "Bolzano", "Croatia", "Bulgaria", "Catalonia")
+ns_order <- c(
+  "Finland", "Sweden", "Denmark", "Netherlands", "Flanders",
+  "Czechia", "Slovakia", "Bolzano", "Croatia", "Bulgaria", "Catalonia"
+)
 
 # Update the factor levels in the data
 plot_predictions$country <- factor(plot_predictions$country, levels = ns_order)
@@ -472,26 +481,25 @@ plot_predictions$country <- factor(plot_predictions$country, levels = ns_order)
 # -----------------------------------------------------------------#
 
 phenology_plot <- ggplot(plot_predictions, aes(x = date, y = predicted_count)) +
-  
+
   # Ribbons (CI)
   geom_ribbon(aes(fill = habitat, ymin = lower_ci, ymax = upper_ci), alpha = 0.3) +
-  
+
   # Trend Lines
   geom_line(aes(color = habitat), linewidth = 1) +
-  
+
   # Styles
   scale_color_manual(values = okabe_ito) +
   scale_fill_manual(values = okabe_ito) +
-  scale_x_date(date_labels = "%b", date_breaks = "2 months") + 
-  
+  scale_x_date(date_labels = "%b", date_breaks = "2 months") +
+
   # Facet Grid
   facet_grid(
-    rows = vars(country), 
-    cols = vars(habitat), 
+    rows = vars(country),
+    cols = vars(habitat),
     scales = "free_y",
     labeller = labeller(habitat = habitat_labeller)
   ) +
-  
   theme_bw() +
   labs(
     title = "Modeled Bird Activity (March 15 - Sept 30)",
@@ -502,7 +510,7 @@ phenology_plot <- ggplot(plot_predictions, aes(x = date, y = predicted_count)) +
   ggplot2::theme(
     # --- CHANGE 2: Remove grey background ---
     # fill = "white" removes the grey. color = "black" keeps the border box.
-    strip.background = ggplot2::element_rect(fill = "white", color = "black"), 
+    strip.background = ggplot2::element_rect(fill = "white", color = "black"),
     strip.text = ggplot2::element_text(face = "bold", size = 10),
     axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5), # Angle 0 is usually readable for numbers
     panel.grid.minor = ggplot2::element_blank(),
@@ -565,263 +573,260 @@ all_prediction_data_list <- list()
 message(paste("--- Starting Phenology Loop for", length(partners_list), "Partners ---"))
 
 for (current_partner in partners_list) {
-  
   message(paste("\n--- Processing Partner:", current_partner, "---"))
-  
+
   # 1a. Find top N species for this partner
   partner_top_species_list <- data_filtered %>%
     dplyr::filter(partner == current_partner) %>%
     dplyr::count(species, sort = TRUE) %>%
     dplyr::slice_head(n = n_top_species) %>%
     dplyr::pull(species)
-  
+
   # 1b. Combine partner list with overall list
   species_to_process <- union(partner_top_species_list, overall_top_species_list)
-  
+
   message(paste(
     "... Found", length(partner_top_species_list), "top species for partner.",
     "Total unique species to process (w/ overall list):", length(species_to_process)
   ))
-  
+
   # 1c. Filter metadata for this partner
   partner_metadata <- recording_metadata %>%
     dplyr::filter(partner == current_partner)
-  
+
   if (nrow(partner_metadata) == 0) {
     message("... Skipping: No recording metadata found for this partner.")
     next
   }
-  
+
   # -----------------------------------------------------------------#
   ## 2. Start Inner Loop (Species) ----
   # -----------------------------------------------------------------#
-  
+
   for (current_species in species_to_process) {
-    
     message(paste("... Processing Species:", current_species))
-    
-    tryCatch({
-      
-      # 2a. Filter detections
-      species_detections <- data_filtered %>%
-        dplyr::filter(
-          partner == current_partner,
-          species == current_species
-        )
-      
-      if (nrow(species_detections) == 0) {
-        message("... ... Skipping: No detections found for this species.")
-        next
-      }
-      
-      # -----------------------------------------------------------------#
-      ## 3. Prepare Data for Modeling (per partner/species) ----
-      # -----------------------------------------------------------------#
-      
-      # A) Calculate TOTAL RECORDING EFFORT per day
-      effort_by_day <- partner_metadata %>%
-        dplyr::group_by(date) %>%
-        dplyr::summarise(
-          total_effort_hours = sum(duration_hours, na.rm = TRUE)
-        ) %>%
-        dplyr::mutate(doy = lubridate::yday(date))
-      
-      # B) Calculate TOTAL DETECTIONS per day
-      detections_by_day <- species_detections %>%
-        dplyr::group_by(date) %>%
-        dplyr::summarise(
-          total_detections = dplyr::n()
-        )
-      
-      # C) Combine effort and detections
-      date_range <- seq(min(effort_by_day$date), max(effort_by_day$date), by = "day")
-      
-      phenology_data <- data.frame(date = date_range) %>%
-        dplyr::left_join(effort_by_day, by = "date") %>%
-        dplyr::left_join(detections_by_day, by = "date") %>%
-        dplyr::mutate(
-          total_detections = tidyr::replace_na(total_detections, 0),
-          total_effort_hours = tidyr::replace_na(total_effort_hours, 0),
-          doy = lubridate::yday(date)
-        ) %>%
-        dplyr::filter(total_effort_hours > 0) %>%
-        dplyr::mutate(
-          effort_for_offset = total_effort_hours + 0.001
-        )
-      
-      if (nrow(phenology_data) < 15) {
-        message("... ... Skipping: Not enough recording days (<15) to fit a model.")
-        next
-      }
-      
-      # -----------------------------------------------------------------#
-      ## 4. Run the GAM (The Phenology Indicator) ----
-      # -----------------------------------------------------------------#
-      
-      # 'k' is based on the unique days *in the local data*
-      k_val <- min(20, length(unique(phenology_data$doy)) - 1)
-      
-      if (k_val < 3) {
-        message("... ... Skipping: Not enough unique days to set GAM knots.")
-        next
-      }
-      
-      # The model is fit *only* to the local phenology_data
-      pheno_model <- mgcv::gam(
-        total_detections ~ s(doy, bs = "tp", k = k_val),
-        data = phenology_data,
-        family = "poisson",
-        offset = log(effort_for_offset)
-      )
-      
-      # -----------------------------------------------------------------#
-      ## 5. Create & Save Plot (*** MODIFIED ***) ----
-      # -----------------------------------------------------------------#
-      
-      # Create the prediction sequence based *only* on the local data
-      local_doy_sequence <- seq(min(phenology_data$doy), max(phenology_data$doy), by = 1)
-      
-      prediction_data <- data.frame(
-        doy = local_doy_sequence,
-        effort_for_offset = 1
-      )
-      
-      predictions <- predict(
-        pheno_model,
-        newdata = prediction_data,
-        type = "link",
-        se.fit = TRUE
-      )
-      
-      # Remember to use as.numeric() to ensure bind_rows() works later!
-      prediction_data <- prediction_data %>%
-        dplyr::mutate(
-          predicted_rate = as.numeric(exp(predictions$fit)),
-          se_high = as.numeric(exp(predictions$fit + 2 * predictions$se.fit)),
-          se_low = as.numeric(exp(predictions$fit - 2 * predictions$se.fit))
-        )
-      
-      # --- NEW: CALCULATE MAX Y-AXIS VALUE ---
-      # The maximum Y should be the greater of:
-      # 1. The highest raw data point (Rate)
-      # 2. The highest point of the predicted upper confidence interval (se_high)
-      max_raw_rate <- max(phenology_data$total_detections / phenology_data$effort_for_offset, na.rm = TRUE)
-      max_ci_rate <- max(prediction_data$se_high, na.rm = TRUE)
-      
-      # We use 'max' to find the true ceiling, then add a small buffer (1.1x)
-      max_y_value <- max(max_raw_rate, max_ci_rate) * 1.1
-      
-      
-      # Create plot
-      phenology_plot <- ggplot2::ggplot(prediction_data, ggplot2::aes(x = doy)) +
-        ggplot2::geom_ribbon(
-          ggplot2::aes(ymin = se_low, ymax = se_high),
-          fill = "skyblue",
-          alpha = 0.4
-        ) +
-        ggplot2::geom_line(
-          ggplot2::aes(y = predicted_rate),
-          color = "blue",
-          linewidth = 1
-        ) +
-        ggplot2::geom_point(
+
+    tryCatch(
+      {
+        # 2a. Filter detections
+        species_detections <- data_filtered %>%
+          dplyr::filter(
+            partner == current_partner,
+            species == current_species
+          )
+
+        if (nrow(species_detections) == 0) {
+          message("... ... Skipping: No detections found for this species.")
+          next
+        }
+
+        # -----------------------------------------------------------------#
+        ## 3. Prepare Data for Modeling (per partner/species) ----
+        # -----------------------------------------------------------------#
+
+        # A) Calculate TOTAL RECORDING EFFORT per day
+        effort_by_day <- partner_metadata %>%
+          dplyr::group_by(date) %>%
+          dplyr::summarise(
+            total_effort_hours = sum(duration_hours, na.rm = TRUE)
+          ) %>%
+          dplyr::mutate(doy = lubridate::yday(date))
+
+        # B) Calculate TOTAL DETECTIONS per day
+        detections_by_day <- species_detections %>%
+          dplyr::group_by(date) %>%
+          dplyr::summarise(
+            total_detections = dplyr::n()
+          )
+
+        # C) Combine effort and detections
+        date_range <- seq(min(effort_by_day$date), max(effort_by_day$date), by = "day")
+
+        phenology_data <- data.frame(date = date_range) %>%
+          dplyr::left_join(effort_by_day, by = "date") %>%
+          dplyr::left_join(detections_by_day, by = "date") %>%
+          dplyr::mutate(
+            total_detections = tidyr::replace_na(total_detections, 0),
+            total_effort_hours = tidyr::replace_na(total_effort_hours, 0),
+            doy = lubridate::yday(date)
+          ) %>%
+          dplyr::filter(total_effort_hours > 0) %>%
+          dplyr::mutate(
+            effort_for_offset = total_effort_hours + 0.001
+          )
+
+        if (nrow(phenology_data) < 15) {
+          message("... ... Skipping: Not enough recording days (<15) to fit a model.")
+          next
+        }
+
+        # -----------------------------------------------------------------#
+        ## 4. Run the GAM (The Phenology Indicator) ----
+        # -----------------------------------------------------------------#
+
+        # 'k' is based on the unique days *in the local data*
+        k_val <- min(20, length(unique(phenology_data$doy)) - 1)
+
+        if (k_val < 3) {
+          message("... ... Skipping: Not enough unique days to set GAM knots.")
+          next
+        }
+
+        # The model is fit *only* to the local phenology_data
+        pheno_model <- mgcv::gam(
+          total_detections ~ s(doy, bs = "tp", k = k_val),
           data = phenology_data,
-          ggplot2::aes(y = total_detections / effort_for_offset),
-          alpha = 0.2,
-          color = "grey30"
-        ) +
-        ggplot2::labs(
-          title = paste("Phenology:", current_species),
-          subtitle = paste("Partner:", current_partner, "| Modeled with GAM"),
-          x = "Day of Year (DOY)",
-          y = "Predicted Detections / Hour"
-        ) +
-        ggplot2::theme_bw() +
-        
-        # --- Apply the enforced Y-Axis limit ---
-        ggplot2::ylim(c(0, max_y_value)) +
-        
-        # Force the plot's X-AXIS to the GLOBAL range for visualization
-        ggplot2::coord_cartesian(xlim = c(global_min_doy, global_max_doy))
-      
-      
-      # Create a clean filename
-      clean_species_name <- gsub("[^a-zA-Z0-9_]", "-", current_species)
-      plot_filename <- paste0(
-        "Outputs/Figures/Phenology/phenology_",
-        current_partner,
-        "_",
-        clean_species_name,
-        ".png"
-      )
-      
-      # Save the plot
-      ggplot2::ggsave(
-        plot_filename,
-        phenology_plot,
-        width = 10,
-        height = 6,
-        bg = "white"
-      )
-      
-      # -----------------------------------------------------------------#
-      ## 6. Extract & Store Metrics ----
-      # -----------------------------------------------------------------#
-      # (This section is now correct, as 'prediction_data' is local)
-      
-      peak_rate_value <- max(prediction_data$predicted_rate, na.rm = TRUE)
-      
-      peak_activity_day <- prediction_data %>%
-        dplyr::filter(predicted_rate == peak_rate_value) %>%
-        dplyr::slice(1)
-      
-      season_threshold_value <- 0.10 * peak_rate_value
-      
-      season_dates <- prediction_data %>%
-        dplyr::filter(predicted_rate >= season_threshold_value)
-      
-      if (nrow(season_dates) == 0) {
-        season_onset_doy <- NA
-        season_end_doy <- NA
-      } else {
-        season_onset_doy <- min(season_dates$doy)
-        season_end_doy <- max(season_dates$doy)
-      }
-      
-      # Create a one-row data frame with the results
-      result_row <- data.frame(
-        partner = current_partner,
-        species = current_species,
-        peak_doy = peak_activity_day$doy,
-        peak_rate_per_hour = peak_activity_day$predicted_rate,
-        season_onset_doy = season_onset_doy,
-        season_end_doy = season_end_doy,
-        model_k_value = k_val,
-        n_detections = nrow(species_detections)
-      )
-      
-      # Add this row to our big results list
-      all_phenology_results[[length(all_phenology_results) + 1]] <- result_row
-      
-      # --- Store the plot data (now correctly local) ---
-      prediction_data_to_save <- prediction_data %>%
-        dplyr::mutate(
-          partner = current_partner,
-          species = current_species
+          family = "poisson",
+          offset = log(effort_for_offset)
         )
-      
-      # Add this data frame to our big list
-      all_prediction_data_list[[length(all_prediction_data_list) + 1]] <- prediction_data_to_save
-      
-      
-      message("... ... Success. Plot saved and metrics recorded.")
-      
-    }, error = function(e) {
-      message(paste("... ... ERROR for", current_species, ":", e$message))
-    }) # End of tryCatch
-    
+
+        # -----------------------------------------------------------------#
+        ## 5. Create & Save Plot (*** MODIFIED ***) ----
+        # -----------------------------------------------------------------#
+
+        # Create the prediction sequence based *only* on the local data
+        local_doy_sequence <- seq(min(phenology_data$doy), max(phenology_data$doy), by = 1)
+
+        prediction_data <- data.frame(
+          doy = local_doy_sequence,
+          effort_for_offset = 1
+        )
+
+        predictions <- predict(
+          pheno_model,
+          newdata = prediction_data,
+          type = "link",
+          se.fit = TRUE
+        )
+
+        # Remember to use as.numeric() to ensure bind_rows() works later!
+        prediction_data <- prediction_data %>%
+          dplyr::mutate(
+            predicted_rate = as.numeric(exp(predictions$fit)),
+            se_high = as.numeric(exp(predictions$fit + 2 * predictions$se.fit)),
+            se_low = as.numeric(exp(predictions$fit - 2 * predictions$se.fit))
+          )
+
+        # --- NEW: CALCULATE MAX Y-AXIS VALUE ---
+        # The maximum Y should be the greater of:
+        # 1. The highest raw data point (Rate)
+        # 2. The highest point of the predicted upper confidence interval (se_high)
+        max_raw_rate <- max(phenology_data$total_detections / phenology_data$effort_for_offset, na.rm = TRUE)
+        max_ci_rate <- max(prediction_data$se_high, na.rm = TRUE)
+
+        # We use 'max' to find the true ceiling, then add a small buffer (1.1x)
+        max_y_value <- max(max_raw_rate, max_ci_rate) * 1.1
+
+
+        # Create plot
+        phenology_plot <- ggplot2::ggplot(prediction_data, ggplot2::aes(x = doy)) +
+          ggplot2::geom_ribbon(
+            ggplot2::aes(ymin = se_low, ymax = se_high),
+            fill = "skyblue",
+            alpha = 0.4
+          ) +
+          ggplot2::geom_line(
+            ggplot2::aes(y = predicted_rate),
+            color = "blue",
+            linewidth = 1
+          ) +
+          ggplot2::geom_point(
+            data = phenology_data,
+            ggplot2::aes(y = total_detections / effort_for_offset),
+            alpha = 0.2,
+            color = "grey30"
+          ) +
+          ggplot2::labs(
+            title = paste("Phenology:", current_species),
+            subtitle = paste("Partner:", current_partner, "| Modeled with GAM"),
+            x = "Day of Year (DOY)",
+            y = "Predicted Detections / Hour"
+          ) +
+          ggplot2::theme_bw() +
+
+          # --- Apply the enforced Y-Axis limit ---
+          ggplot2::ylim(c(0, max_y_value)) +
+
+          # Force the plot's X-AXIS to the GLOBAL range for visualization
+          ggplot2::coord_cartesian(xlim = c(global_min_doy, global_max_doy))
+
+
+        # Create a clean filename
+        clean_species_name <- gsub("[^a-zA-Z0-9_]", "-", current_species)
+        plot_filename <- paste0(
+          "Outputs/Figures/Phenology/phenology_",
+          current_partner,
+          "_",
+          clean_species_name,
+          ".png"
+        )
+
+        # Save the plot
+        ggplot2::ggsave(
+          plot_filename,
+          phenology_plot,
+          width = 10,
+          height = 6,
+          bg = "white"
+        )
+
+        # -----------------------------------------------------------------#
+        ## 6. Extract & Store Metrics ----
+        # -----------------------------------------------------------------#
+        # (This section is now correct, as 'prediction_data' is local)
+
+        peak_rate_value <- max(prediction_data$predicted_rate, na.rm = TRUE)
+
+        peak_activity_day <- prediction_data %>%
+          dplyr::filter(predicted_rate == peak_rate_value) %>%
+          dplyr::slice(1)
+
+        season_threshold_value <- 0.10 * peak_rate_value
+
+        season_dates <- prediction_data %>%
+          dplyr::filter(predicted_rate >= season_threshold_value)
+
+        if (nrow(season_dates) == 0) {
+          season_onset_doy <- NA
+          season_end_doy <- NA
+        } else {
+          season_onset_doy <- min(season_dates$doy)
+          season_end_doy <- max(season_dates$doy)
+        }
+
+        # Create a one-row data frame with the results
+        result_row <- data.frame(
+          partner = current_partner,
+          species = current_species,
+          peak_doy = peak_activity_day$doy,
+          peak_rate_per_hour = peak_activity_day$predicted_rate,
+          season_onset_doy = season_onset_doy,
+          season_end_doy = season_end_doy,
+          model_k_value = k_val,
+          n_detections = nrow(species_detections)
+        )
+
+        # Add this row to our big results list
+        all_phenology_results[[length(all_phenology_results) + 1]] <- result_row
+
+        # --- Store the plot data (now correctly local) ---
+        prediction_data_to_save <- prediction_data %>%
+          dplyr::mutate(
+            partner = current_partner,
+            species = current_species
+          )
+
+        # Add this data frame to our big list
+        all_prediction_data_list[[length(all_prediction_data_list) + 1]] <- prediction_data_to_save
+
+
+        message("... ... Success. Plot saved and metrics recorded.")
+      },
+      error = function(e) {
+        message(paste("... ... ERROR for", current_species, ":", e$message))
+      }
+    ) # End of tryCatch
   } # End of Inner Loop (Species)
-  
 } # End of Outer Loop (Partners)
 
 # -----------------------------------------------------------------#
