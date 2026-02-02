@@ -31,7 +31,7 @@ packages <- c(
   "DHARMa",
   "patchwork",
   "sjPlot",
-  "report"
+  "report",
   "officer",
   "flextable"
 )
