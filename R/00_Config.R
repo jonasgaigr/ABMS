@@ -32,6 +32,8 @@ packages <- c(
   "patchwork",
   "sjPlot",
   "report"
+  "officer",
+  "flextable"
 )
 
 # Standard package
